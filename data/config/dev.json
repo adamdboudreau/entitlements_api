@@ -1,6 +1,7 @@
 {
+  "logFile"        : "./logs/entitlements.log",
+  "adminEmail"     : "sskyba@gmail.com",
   "cassandraHosts" : [ "127.0.0.1" ],
-  "url"            : "http://rubyinrails.com",
   "posts"          : {
                        "1":"strftime-time-format-in-ruby",
                        "2":"what-is-gemset"

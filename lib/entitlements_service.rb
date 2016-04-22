@@ -28,7 +28,8 @@ module EntitlementsService
 #          puts "get guid: #{params[:guid]}"
           e = Entitlements.find(guid: params[:guid]).first
           $logger.debug "EntitlementsApi.get: #{e.inspect}"
-          e.nil? ? {guid: 'guid not found'} : {guid: e.guid, type: e.type, brand: e.brand, product: e.product, start_date: e.start_date, end_date: e.end_date}
+          e.nil? ? { success: false, message: 'Guid not found', guid: params[:guid]} : {success: true, record: e}
+#          e.nil? ? { success: false, message: 'Guid not found', guid: params[:guid]} : {success: true, guid: e.guid, type: e.type, brand: e.brand, product: e.product, start_date: e.start_date, end_date: e.end_date}
         end
       end
 

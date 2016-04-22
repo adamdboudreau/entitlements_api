@@ -9,7 +9,7 @@ class Connection
     @connection = Cassandra.cluster(
         # username: 'admin',
         # password: '',
-        hosts: Cfg.cassandraHosts
+        hosts: Cfg.config['cassandraHosts']
     ).connect
   end
 end
