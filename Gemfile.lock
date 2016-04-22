@@ -40,6 +40,8 @@ GEM
     minitest (5.8.4)
     multi_json (1.11.2)
     multi_xml (0.5.5)
+    puma (2.11.3)
+      rack (>= 1.1, < 2.0)
     rack (1.6.4)
     rack-accept (0.4.5)
       rack (>= 0.4)
@@ -62,7 +64,8 @@ DEPENDENCIES
   cassandra-driver
   grape
   grape-entity
+  puma
   rake
 
 BUNDLED WITH
-   1.10.6
+   1.11.2
