@@ -6,10 +6,6 @@ class Connection
   attr_reader :connection
 
   def initialize
-    @connection = Cassandra.cluster(
-        # username: 'admin',
-        # password: '',
-        hosts: Cfg.config['cassandraHosts']
-    ).connect
+    @connection = Cassandra.cluster(Cfg.config['cassandraCluster']).connect
   end
 end

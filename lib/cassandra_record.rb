@@ -14,18 +14,15 @@ class CassandraRecord
   end
 
   class << self
-    attr_reader :columns, :table_name, :connection, :update_sql, :keys
+    attr_reader :columns, :table_name, :keyspace_name, :connection, :update_sql, :keys
   end
   CassandraColumn = Struct.new(:name, :type, :data_type)
 
   def self.inherited(sub_class)
-    sc = sub_class.to_s
-    if i = sc.rindex('::')
-      sc = sc[(i+2)..-1]
-    end
-    table_name = sc.to_s.underscore
+    keyspace_name = Cfg.config['cassandraCluster']['keyspace']
+    table_name = Cfg.config['cassandraCluster']['table']
     connection = Connection.instance.connection
-    columns = load_columns(connection, table_name)
+    columns = load_columns(connection, keyspace_name, table_name)
 
     sub_class.instance_variable_set :@table_name, table_name
     sub_class.instance_variable_set :@connection, connection
@@ -39,16 +36,16 @@ class CassandraRecord
     end
   end
 
-  def self.load_columns(connection, table_name)
+  def self.load_columns(connection, keyspace_name, table_name)
     connection.execute('use system')
-    columns = connection.execute("select column_name,type, validator from schema_columns where keyspace_name='entitlements_dev' and columnfamily_name='#{table_name}'")
+    columns = connection.execute("select column_name,type, validator from schema_columns where keyspace_name='#{keyspace_name}' and columnfamily_name='#{table_name}'")
                   .reduce({}) do |columns, row|
       columns[row['column_name'].to_sym] = CassandraColumn.new(
           row['column_name'], row['type'], row['validator']
       )
       columns
     end
-    connection.execute("use entitlements_dev")
+    connection.execute("use #{keyspace_name}")
     columns
   end
 

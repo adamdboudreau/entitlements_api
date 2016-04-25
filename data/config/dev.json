@@ -1,9 +1,12 @@
 {
-  "logFile"        : "./logs/entitlements.log",
-  "adminEmail"     : "sskyba@gmail.com",
-  "cassandraHosts" : [ "127.0.0.1" ],
-  "posts"          : {
-                       "1":"strftime-time-format-in-ruby",
-                       "2":"what-is-gemset"
-                     }
+  "logFile"          : "./logs/entitlements.log",
+  "adminEmail"       : "sskyba@gmail.com",
+  "cassandraCluster" : {
+  	                     "hosts"          : [ "127.0.0.1" ],
+  	                     "username"       : "",
+  	                     "password"       : "",
+  	                     "keyspace"       : "entitlements_dev",
+  	                     "table"          : "entitlements",
+  	                     "tableMigration" : "migration_history"
+                       }
 }
