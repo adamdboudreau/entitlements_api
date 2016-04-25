@@ -1,5 +1,5 @@
 require 'grape'
-require './data/config.rb'
+require './config/config.rb'
 require './lib/entitlements.rb'
 
 module EntitlementsService

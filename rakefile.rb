@@ -1,7 +1,9 @@
+require './config/config.rb'
 require './lib/connection.rb'
 require './lib/migration.rb'
 
 desc 'create db'
+
 task :create do
   m = Migration.new
   cql = <<-KEYSPACE_CQL
