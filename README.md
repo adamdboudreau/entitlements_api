@@ -8,8 +8,7 @@ Installation:
 - bundle install
 
 Setup:
-- rake create RAKE_ENV=[env]
-- rake migrate RAKE_ENV=[env]
+- rake create migrate RAKE_ENV=[env]
 
 Run:
 - rackup -E [env]

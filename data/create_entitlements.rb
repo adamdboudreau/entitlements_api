@@ -3,12 +3,12 @@ class CreateEntitlements < Migration
     cql = <<-TABLE_CQL
       CREATE TABLE entitlements (
         guid VARCHAR,
+        end_date timestamp,
+        start_date timestamp,
         type VARCHAR,
         brand VARCHAR,
         product VARCHAR,
-        start_date timestamp,
-        end_date timestamp,
-        PRIMARY KEY (guid)
+        PRIMARY KEY ((guid), end_date)
       ) WITH compression = { 'sstable_compression' : 'LZ4Compressor' };
     TABLE_CQL
     execute(cql)

@@ -10,7 +10,7 @@ class Cfg
     exit
   end
 
-  @config
+  @config = []
 
   if ENV["RAKE_ENV"] # create/migrate rake task
     unless environments.include? ENV['RAKE_ENV']

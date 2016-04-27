@@ -4,7 +4,7 @@ require './lib/entitlements.rb'
 
 module EntitlementsService
   class API < Grape::API
-    version 'v1', using: :header, vendor: 'entitlements_api'
+    version 'v1', using: :header, vendor: 'dtc_entitlements_service'
     format :json
 
     resource :entitlements do
@@ -12,6 +12,7 @@ module EntitlementsService
       desc 'Create an entitlement'
       params do
         requires :guid, type: String, desc: 'Guid for your entitlement'
+        requires :end_date, type: Date, desc: 'End date'
       end
       post do
         e = Entitlements.new({guid: params[:guid], type: params[:type], brand: params[:brand], product: params[:product], start_date: params[:start_date], end_date: params[:end_date]})
@@ -23,20 +24,26 @@ module EntitlementsService
       params do
         requires :guid, type: String, desc: 'Guid'
       end
-      route_param :guid do
-        get do
-#          puts "get guid: #{params[:guid]}"
-          e = Entitlements.find(guid: params[:guid]).first
-          $logger.debug "EntitlementsApi.get: #{e.inspect}"
-          e.nil? ? { success: false, message: 'Guid not found', guid: params[:guid]} : {success: true, record: e}
+      get ':guid' do
+        e = Entitlements.find(guid: params[:guid]).first
+        $logger.debug "EntitlementsApi.get: #{e.inspect}"
+        e.nil? ? { success: false, message: 'Guid not found', guid: params[:guid]} : { success: true, record: e }
 #          e.nil? ? { success: false, message: 'Guid not found', guid: params[:guid]} : {success: true, guid: e.guid, type: e.type, brand: e.brand, product: e.product, start_date: e.start_date, end_date: e.end_date}
-        end
       end
 
       desc 'Update entitlement'
       params do
         requires :guid, type: String, desc: 'Guid'
+        requires :status, type: String, desc: 'Your status.'
       end
+      put ':id' do
+        authenticate!
+        current_user.statuses.find(params[:id]).update({
+          user: current_user,
+          text: params[:status]
+        })
+      end
+
       route_param :guid do
         post do
 #          puts "get guid: #{params[:guid]}"

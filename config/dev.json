@@ -3,11 +3,12 @@
   "adminEmail"       : "sskyba@gmail.com",
   "cassandraCluster" : {
                          "hosts"          : [ "127.0.0.1" ],
+                         "port"           : 9042,
                          "username"       : "",
                          "password"       : "",
-                         "port"           : 9043,
                          "keyspace"       : "entitlements_dev",
                          "table"          : "entitlements",
                          "tableMigration" : "migration_history"
-                       }
+  },
+  "brands"            : ["gcl", "texture", "shomi"]
 }
