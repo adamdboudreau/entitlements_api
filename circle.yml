@@ -1,0 +1,69 @@
+# machine: adjusting the VM to your preferences and requirements
+# checkout: checking out and cloning your git repo
+# dependencies: setting up your project’s language-specific dependencies
+# database: preparing the databases for your tests
+# test: running your tests
+# deployment: deploying your code to your web servers
+
+# APP_NAME = dtces
+# DOCKER_EMAIL
+# DOCKER_USERNAME
+# DOCKER_PASSWORD
+
+# AWS_ACCESS_KEY_ID
+# AWS_SECRET_ACCESS_KEY
+# AWS_DEFAULT_REGION=us-east-1
+# AWS_S3_BUCKET=dtces-dev-eb-dockerrun
+# AWS_S3_KEY=Dockerrun.aws.json
+
+general:
+  branches:
+    only:
+      - circle
+
+machine:
+  #python:
+  #  version: 2.7.3
+  services:
+    - docker
+    #- cassandra
+#  environment:
+#    foo: bar
+#    baz: 123
+#    DATABASE_URL: postgres://ubuntu:@127.0.0.1:5432/circle_test
+
+dependencies:
+    post:
+      - sudo apt-get install -y python-pip
+      - pip install awscli
+      - docker login -e=$DOCKER_EMAIL -u=$DOCKER_USERNAME -p=$DOCKER_PASSWORD
+      - docker build -t $DOCKER_USERNAME/$APP_NAME:$CIRCLE_SHA1 .
+      - docker push $DOCKER_USERNAME/$APP_NAME
+
+#database:
+#  override:
+#    - mv config/database.ci.yml config/database.yml
+#    - bundle exec rake db:create db:schema:load --trace
+
+test:
+  override:
+    - docker ps -a
+#    - docker run -d -p 9046:9046 cassandra:2; sleep 10
+#    - docker run -d -p 9292:9292 $DOCKER_USERNAME/$APP_NAME:$CIRCLE_SHA1; sleep 10
+#    - curl --retry 10 --retry-delay 5 -v http://localhost:9292//entitlements/1
+
+deployment:
+   dev:
+     branch: circle
+     commands:
+       - sed -i "s/latest/$CIRCLE_SHA1/g" Dockerrun.aws.json
+       - aws s3 cp Dockerrun.aws.json s3://$AWS_S3_BUCKET/Dockerrun.aws.json
+       - aws elasticbeanstalk create-application-version --region us-east-1 --application-name dtces --version-label $CIRCLE_SHA1 --description $CIRCLE_SHA1 --source-bundle S3Bucket="dtces-dev-eb-dockerrun",S3Key="Dockerrun.aws.json"
+       - aws elasticbeanstalk update-environment --environment-name dtces-dev --version-label $CIRCLE_SHA1 --region us-east-1
+
+#deployment:
+#  hub:
+#    branch: dev-aws
+#    commands:
+#      - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+#      - docker push circleci/elasticsearch
