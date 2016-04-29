@@ -1,3 +1,4 @@
+require './lib/cassandra_record.rb'
 require './lib/connection.rb'
 
 class Migration
@@ -11,7 +12,7 @@ class Migration
 
   def execute(cql, use = true)
     @connection ||= Connection.instance.connection
-    @connection.execute("use entitlements_dev") if use
+    @connection.execute("use #{Cfg.config['cassandraCluster']['keyspace']}") if use
     @connection.execute(cql)
   end
 end

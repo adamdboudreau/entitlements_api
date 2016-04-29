@@ -1,22 +1,32 @@
 class CreateEntitlements < Migration
   def up
     cql = <<-TABLE_CQL
-      CREATE TABLE entitlements (
+      CREATE TABLE #{Cfg.config['tables']['entitlements']} (
+        id TIMEUUID PRIMARY KEY,
         guid VARCHAR,
-        end_date timestamp,
-        start_date timestamp,
-        type VARCHAR,
         brand VARCHAR,
+        type VARCHAR,
         product VARCHAR,
-        PRIMARY KEY ((guid), end_date)
+        start_date TIMESTAMP,
+        end_date TIMESTAMP
       ) WITH compression = { 'sstable_compression' : 'LZ4Compressor' };
     TABLE_CQL
     execute(cql)
+
+    cql = "CREATE MATERIALIZED VIEW #{Cfg.config['tables']['entitlements_by_guid']}" +
+" AS SELECT guid, end_date, brand, type, product, start_date FROM #{Cfg.config['tables']['entitlements']} " +
+" WHERE guid IS NOT NULL AND id IS NOT NULL PRIMARY KEY (id, guid)"
+    execute(cql)
+
+    cql = "CREATE MATERIALIZED VIEW #{Cfg.config['tables']['entitlements_by_enddate']}" +
+" AS SELECT end_date, guid, brand, type, product, start_date FROM #{Cfg.config['tables']['entitlements']} " +
+" WHERE guid IS NOT NULL AND id IS NOT NULL PRIMARY KEY (id, end_date)"
+#    execute(cql)
   end
 
   def down
     cql = <<-TABLE_CQL
-      DROP TABLE IF EXISTS entitlements;
+      DROP TABLE IF EXISTS #{Cfg.config['tables']['entitlements']};
     TABLE_CQL
     execute(cql)
   end

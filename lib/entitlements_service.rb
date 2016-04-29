@@ -1,10 +1,11 @@
 require 'grape'
 require './config/config.rb'
-require './lib/entitlements.rb'
+require './lib/cassandra_record.rb'
+#require './models/entitlement.rb'
 
 module EntitlementsService
   class API < Grape::API
-    version 'v1', using: :header, vendor: 'dtc_entitlements_service'
+    version 'v1', using: :path, vendor: 'dtc_entitlements_service'
     format :json
 
     resource :entitlements do
@@ -20,9 +21,14 @@ module EntitlementsService
         e.save
       end
 
-      desc 'Get entitlement'
+      desc 'Get entitlements'
       params do
-        requires :guid, type: String, desc: 'Guid'
+        requires :guid, type: String
+        requires :brand, type: String
+        optional :type, type: String
+        optional :product, type: String
+        optional :start_date, type: Date
+        optional :end_date, type: Date
       end
       get ':guid' do
         e = Entitlements.find(guid: params[:guid]).first
