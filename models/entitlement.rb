@@ -1,5 +1,3 @@
-require 'cequel'
-
 class Entitlement
   include Cequel::Record
 
