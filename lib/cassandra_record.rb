@@ -20,7 +20,7 @@ class CassandraRecord
 
   def self.inherited(sub_class)
     keyspace_name = Cfg.config['cassandraCluster']['keyspace']
-    table_name = Cfg.config['cassandraCluster']['table']
+    table_name = Cfg.config['tables']['entitlements']
     connection = Connection.instance.connection
     columns = load_columns(connection, keyspace_name, table_name)
 
