@@ -10,38 +10,6 @@ require './lib/migration.rb'
 task :environment do
 end
 
-puts 'rakefile started'
-cluster = Cassandra.cluster # connects to localhost by default
-puts 'rakefile: cluster started: ' + cluster.inspect
-
-cluster.each_host do |host| # automatically discovers all peers
-  puts "Host #{host.ip}: id=#{host.id} datacenter=#{host.datacenter} rack=#{host.rack}"
-end
-
-keyspace = 'system'
-session  = cluster.connect(keyspace) # create session, optionally scoped to a keyspace, to execute queries
-
-future = session.execute_async('SELECT keyspace_name, table_name FROM system_schema.tables') # fully asynchronous api
-future.on_success do |rows|
-  rows.each do |row|
-    puts "The keyspace #{row['keyspace_name']} has a table called #{row['table_name']}"
-  end
-end
-future.join
-puts 'YAY!'
-
-#config_file = "./config/cequel.yaml"
-#config = YAML.load(config_file)
-#          config_yaml = ERB.new(File.read(config_file)).result
-#          @configuration = YAML.load(config_yaml)['dev']
-#          @configuration = Hash[@configuration.map { |k, v| [k.to_sym, v] }]
-#puts 'config:'
-#puts @configuration.inspect
-#  Cequel.connect(@configuration)
-#  Cequel::Record.establish_connection(@configuration)
-#p Cequel::Record.connection.schema
-#  Cequel::Record.connection.schema.create!
-
 namespace :cequel do
   namespace :keyspace do
     desc 'Initialize Cassandra keyspace'
