@@ -10,8 +10,13 @@ module EntitlementsService
 
     resource :heartbeat do
       desc 'Heartbeat'
+      params do
+      end
       get do
-        { success: true }
+        $logger.debug 'Request: /heartbeat/?' + URI.encode(params.map{|k,v| "#{k}=#{v}"}.join("&"))
+        response = { success: true }
+        $logger.debug "Response: #{response.to_s}"
+        response
       end
     end
 
