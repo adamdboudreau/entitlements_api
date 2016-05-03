@@ -8,6 +8,13 @@ module EntitlementsService
     version 'v1', using: :path, vendor: 'dtc_entitlements_service'
     format :json
 
+    resource :heartbeat do
+      desc 'Heartbeat'
+      get do
+        { success: true }
+      end
+    end
+
     resource :entitlements do
 
       desc 'Create an entitlement'

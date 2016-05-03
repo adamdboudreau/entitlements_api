@@ -1,8 +1,5 @@
 require 'cassandra'
-#require 'cequel'
-#require 'yaml'
 require './config/config.rb'
-#require './models/entitlement.rb'
 require './lib/cassandra_record.rb'
 require './lib/connection.rb'
 require './lib/migration.rb'
