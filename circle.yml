@@ -57,5 +57,5 @@ deployment:
      commands:
        - sed -i "s/latest/$CIRCLE_SHA1/g" Dockerrun.aws.json
        - aws s3 cp Dockerrun.aws.json s3://$AWS_S3_BUCKET/Dockerrun.aws.json
-       - aws elasticbeanstalk create-application-version --application-name dtces --version-label $CIRCLE_SHA1 --description $CIRCLE_SHA1 --source-bundle S3Bucket="dtces-dev-eb-dockerrun",S3Key="Dockerrun.aws.json" --region $AWS_DEFAULT_REGION --option-settings Namespace=aws:elasticbeanstalk:sns:topics,OptionName="Notification Topic ARN",Value="arn:aws:sns:us-east-1:757093152002:dtces"
+       - aws elasticbeanstalk create-application-version --application-name dtces --version-label $CIRCLE_SHA1 --description $CIRCLE_SHA1 --source-bundle S3Bucket="dtces-dev-eb-dockerrun",S3Key="Dockerrun.aws.json" --region $AWS_DEFAULT_REGION
        - aws elasticbeanstalk update-environment --environment-name dtces-dev --version-label $CIRCLE_SHA1 --region $AWS_DEFAULT_REGION --option-settings Namespace=aws:elasticbeanstalk:sns:topics,OptionName="Notification Topic ARN",Value="arn:aws:sns:us-east-1:757093152002:dtces"
