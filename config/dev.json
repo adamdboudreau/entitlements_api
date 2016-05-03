@@ -1,19 +1,19 @@
 {
-  "logFile"          : "./logs/entitlements.log",
-  "adminEmail"       : "sskyba@gmail.com",
-  "cassandraCluster" : {
-                         "hosts"             : [ "127.0.0.1" ],
-                         "port"              : 9042,
-                         "username"          : "",
-                         "password"          : "",
-                         "keyspace"          : "entitlements_dev"
-  },
-  "tables"            : {
-                         "entitlements"            : "entitlements",
-                         "entitlements_by_guid"    : "entitlements_by_guid",
-                         "entitlements_by_enddate" : "entitlements_by_enddate",
-                         "history_entitlements"    : "history_entitlements",
-                         "history_migration"       : "history_migration"
-  },
-  "brands"            : ["gcl", "texture", "shomi"]
+    "logFile"          : "./logs/entitlements.log",
+    "adminEmail"       : "sskyba@gmail.com",
+    "cassandraCluster" : {
+	"hosts"             : [ "172.31.49.96" ],
+	"port"              : 9042,
+	"username"          : "",
+	"password"          : "",
+	"keyspace"          : "entitlements_dev"
+    },
+    "tables"            : {
+	"entitlements"            : "entitlements",
+	"entitlements_by_guid"    : "entitlements_by_guid",
+	"entitlements_by_enddate" : "entitlements_by_enddate",
+	"history_entitlements"    : "history_entitlements",
+	"history_migration"       : "history_migration"
+    },
+    "brands"            : ["gcl", "texture", "shomi"]
 }
