@@ -4,6 +4,9 @@ require './lib/cassandra_record.rb'
 require './lib/connection.rb'
 require './lib/migration.rb'
 
+task :environment do
+end
+
 namespace :cequel do
   namespace :keyspace do
     desc 'Initialize Cassandra keyspace'

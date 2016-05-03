@@ -14,7 +14,7 @@ RUN mkdir /usr/src/app/logs
 
 WORKDIR /usr/src/app
 
-RUN bundle install
+RUN bundle install --jobs 20 --retry 5
 
 EXPOSE 9292
 
