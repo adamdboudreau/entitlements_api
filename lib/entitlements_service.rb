@@ -2,6 +2,7 @@ require 'grape'
 require './config/config.rb'
 require './lib/cassandra_record.rb'
 require './helpers/application_helper.rb'
+require './models/request_heartbeat.rb'
 #require './models/entitlement.rb'
 
 module EntitlementsService
@@ -10,18 +11,8 @@ module EntitlementsService
     format :json
 
     resource :heartbeat do
-      desc 'Heartbeat'
-      params do
-      end
       get do
-        start_time = Time.now.to_f
-        response = { success: "true" }
-        params.each do |k, v| # return passed values
-          response[k] = v
-        end
-        response['requestTimeMs'] = '%.03f' % ((Time.now.to_f - start_time)*1000)
-        $logger.debug "\nRequest: /heartbeat/?" + URI.encode(params.map{|k,v| "#{k}=#{v}"}.join("&")) + "\nResponse: #{response.to_s}"
-        response
+        RequestHeartbeat.new(params).process
       end
     end
 
