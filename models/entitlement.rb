@@ -1,7 +1,13 @@
-class Entitlement
-  include Cequel::Record
+require './lib/connection.rb'
 
-  key :id, :int
-  column :guid, :text
-  column :type, :text
+class Entitlement
+
+  attr_accessor :columns
+
+  def initialize
+  	@columns = ApplicationHelper.loadColumns(Connection.instance.connection, Cfg.config['cassandraCluster']['keyspace'], Cfg.config['tables']['entitlements'])
+  end
+  
+  def store
+  end
 end
