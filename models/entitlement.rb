@@ -1,11 +1,9 @@
-require './lib/connection.rb'
-
 class Entitlement
 
-  attr_accessor :columns
+  attr_accessor :values
 
-  def initialize
-  	@columns = ApplicationHelper.loadColumns(Connection.instance.connection, Cfg.config['cassandraCluster']['keyspace'], Cfg.config['tables']['entitlements'])
+  def initialize (row)
+    @values = row
   end
   
   def store

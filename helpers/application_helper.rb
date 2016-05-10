@@ -1,9 +1,5 @@
 module ApplicationHelper
 
-  def processRequest(request)
-    "processRequest is ok"
-  end
-
   def loadColumns(connection, keyspace_name, table_name)
   	cql = "select column_name,type,clustering_order from system_schema.columns where keyspace_name='#{keyspace_name}' and table_name='#{table_name}'"
     columns = connection.execute(cql).reduce({}) do |columns, row|
@@ -13,6 +9,6 @@ module ApplicationHelper
     columns
   end
 
-  module_function :processRequest, :loadColumns
+  module_function :loadColumns
 
 end

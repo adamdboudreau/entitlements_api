@@ -1,6 +1,6 @@
 require 'cassandra'
 require 'singleton'
-require './lib/cassandra_record.rb'
+#require './lib/cassandra_record.rb'
 
 class Connection
   include Singleton
@@ -17,15 +17,25 @@ class Connection
     @connection = Cassandra.cluster(cluster).connect
   end
 
-  def getEntitlements(guid, brand, source = '', product = '', trace_id = '', search_date = DateTime.now)
-  	cql = "SELECT * FROM #{@table_entitlements} WHERE guid=? AND brand=? AND end_date>?"
-  	args = [guid, brand, search_date]
-    future = @connection.execute_async(cql, arguments: args)
-    future.on_success do |rows|
-      rows.each do |row|
-        puts row['end_date']
-      end
+  def getEntitlements(params)
+    search_date = (params['search_date'] || Time.now).to_i
+    cql = "SELECT * FROM #{@table_entitlements} WHERE guid=? AND brand=? AND end_date>?"
+    result = Array.new
+    @connection.execute(cql, arguments: [params['guid'], params['brand'], search_date]).each do |row|
+      result << Entitlement.new(row) unless ((search_date<row['start_date']) || (params['source'] || row['source']!=params['source']) || (params['product'] || row['product']!=params['product']) || (params['trace_id'] || row['trace_id']!=params['trace_id']))
     end
-    future.join  
+    result  
   end
+
+  def getTC(params)
+    result = nil
+    if params['guid'] && (Cfg.config['brands'].include? params['brand'])
+      cql = "SELECT * FROM #{@table_tc} WHERE guid=? AND brand=? LIMIT 1"
+      @connection.execute(cql, arguments: [params['guid'], params['brand']]).each do |row|
+        result = TC.new(row) 
+      end 
+    end
+    result  
+  end
+
 end

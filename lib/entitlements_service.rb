@@ -1,10 +1,5 @@
-require 'grape'
 require './config/config.rb'
-require './lib/cassandra_record.rb'
-require './helpers/application_helper.rb'
-require './models/request_heartbeat.rb'
-require './models/request_entitled.rb'
-require './models/entitlement.rb'
+#require './lib/cassandra_record.rb'
 
 module EntitlementsService
   class API < Grape::API
@@ -13,13 +8,25 @@ module EntitlementsService
 
     resource :heartbeat do
       get do
-        RequestHeartbeat.new(params).process
+        Request::Heartbeat.new(params).process
       end
     end
 
     resource :entitled do
       get do
-        RequestEntitled.new(params).process
+        Request::Entitled.new(params).process
+      end
+      put do
+        Request::Entitled.new(params, :put).process
+      end
+    end
+
+    resource :tc do
+      get do
+        Request::TC.new(params).process
+      end
+      put do
+        Request::TC.new(params, :put).process
       end
     end
 
