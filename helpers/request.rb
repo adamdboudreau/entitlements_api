@@ -70,7 +70,7 @@ module Request
   class TC < AbstractRequest
 
     def initialize (params, httptype = :get)
-      @params = params
+#      @params = params
       super :tc, params, httptype
     end
 
@@ -81,9 +81,7 @@ module Request
     end
 
     def process
-      unless '' == validateMessage = validate
-        @response = { success: 'false', message: validateMessage }
-      end
+      @response = { success: 'false', message: validateMessage } unless '' == (validateMessage = validate)
       super
     end
 
