@@ -21,6 +21,18 @@ module EntitlementsService
       end
     end
 
+    resource :entitlements do
+      get do
+        Request::Entitlements.new(params).process
+      end
+      put do
+        Request::Entitlements.new(params, :put).process
+      end
+      delete do
+        Request::Entitlements.new(params, :delete).process
+      end
+    end
+
     resource :tc do
       get do
         Request::TC.new(params).process
@@ -30,7 +42,7 @@ module EntitlementsService
       end
     end
 
-    resource :entitlements do
+    resource :entitlements1 do
 
       desc 'Create an entitlement'
       params do

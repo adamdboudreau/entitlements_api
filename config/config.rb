@@ -1,13 +1,10 @@
+require 'cassandra'
 require 'grape'
 require 'json'
 require 'singleton'
 
 require './helpers/application_helper.rb'
 require './helpers/request.rb'
-#require './models/request.rb'
-#require './models/request_heartbeat.rb'
-#require './models/request_entitled.rb'
-#require './models/request_tc.rb'
 require './models/entitlement.rb'
 require './models/tc.rb'
 

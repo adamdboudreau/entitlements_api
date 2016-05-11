@@ -12,10 +12,13 @@ module Request
       @params = params
       @httptype = httptype
       @response = { success: "true" }
+      @error_message = nil
     end
 
     def process
-      @response[:tc] = tc if (@httptype==:get) && (tc = Connection.instance.getTC(@params))
+
+      tc = ((@httptype==:get) && (@type!=:heartbeat)) ? Connection.instance.getTC(@params) : nil
+      @response[:tc] = tc if tc
 
       @response[:request] = {}
       @response[:request][:type] = "#{@httptype.upcase} #{@type}"
@@ -43,7 +46,6 @@ module Request
   class Entitled < AbstractRequest
 
     def initialize (params, httptype = :get)
-      @params = params
       super :entitled, params, httptype
     end
 
@@ -53,14 +55,52 @@ module Request
       return 'Incorrect source' unless @params['source']
       return 'Incorrect product' unless @params['product']
       return 'Incorrect trace_id' unless @params['trace_id']
-      ''
+      return 'Incorrect search_date' if (@httptype==:get) && @params['search_date'] && (@params['search_date'].to_i.to_s!=@params['search_date'])
+      return 'Incorrect start_date' if (@httptype==:put) && @params['start_date'] && (@params['start_date'].to_i.to_s!=@params['start_date'])
+      return 'Incorrect end_date' if (@httptype==:put) && @params['end_date'] && (@params['end_date'].to_i.to_s!=@params['end_date'])
+      return 'Incorrect tc_version' if (@httptype==:put) && @params['tc_version'] && (@params['tc_version'].to_f.to_s!=@params['tc_version'])
+      nil
     end
 
     def process
-      if '' == validateMessage = validate
-        @response['entitled'] = (Connection.instance.getEntitlements(@params).length > 0).to_s
+      if @error_message = validate # validation failed
+        @response = { success: 'false', message: @error_message }
       else
-        @response = { success: "false", message: validateMessage }
+        if @httptype==:put
+          @response = { success: 'false', message: @error_message } unless Connection.instance.putEntitled(@params)
+        else
+          @response['entitled'] = Connection.instance.getEntitled(@params).to_s
+        end
+      end
+      super
+    end
+
+  end
+
+#-----------------------------------------------------------------------------------------------------------
+
+  class Entitlements < AbstractRequest
+
+    def initialize (params, httptype = :get)
+      super :entitlements, params, httptype
+    end
+
+    def validate
+      return 'Incorrect brand' unless Cfg.config['brands'].include? @params['brand']
+      return 'Incorrect guid' unless @params['guid']
+      return 'Incorrect source' if (@httptype==:delete) && !@params['source']
+      nil
+    end
+
+    def process
+      if @error_message = validate # validation failed
+        @response = { success: 'false', message: @error_message }
+      else
+        if @httptype==:delete
+          @response = { success: 'false', message: @error_message } unless Connection.instance.deleteEntitlements(@params)
+        else
+          @response['entitlements'] = Connection.instance.getEntitlements(@params)
+        end
       end
       super
     end
@@ -72,18 +112,25 @@ module Request
   class TC < AbstractRequest
 
     def initialize (params, httptype = :get)
-#      @params = params
       super :tc, params, httptype
     end
 
     def validate
       return 'Incorrect brand' unless Cfg.config['brands'].include? @params['brand']
       return 'Incorrect guid' unless @params['guid']
-      ''
+      return 'Incorrect tc_version' unless (@httptype!=:put) || (@params['tc_version'].to_f.to_s == @params['tc_version'])
+      # check if the passed version newer than existing one
+      tc = Connection.instance.getTC(@params)
+      return 'Too old tc_version to renew' if tc && (tc[:version].to_f > @params['tc_version'].to_f)
+      nil
     end
 
     def process
-      @response = { success: 'false', message: validateMessage } unless '' == (validateMessage = validate)
+      if @error_message = validate # validation failed
+        @response = { success: 'false', message: @error_message }
+      elsif @httptype==:put
+        @response = { success: 'false', message: @error_message } unless Connection.instance.putTC(@params)
+      end
       super
     end
 

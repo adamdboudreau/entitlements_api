@@ -2,7 +2,6 @@ class CreateEntitlements < Migration
   def up
     cql = <<-TABLE_CQL
       CREATE TABLE #{Cfg.config['tables']['entitlements']} (
-        id TIMEUUID,
         guid TEXT,
         brand TEXT,
         source TEXT,
@@ -10,14 +9,13 @@ class CreateEntitlements < Migration
         trace_id TEXT,
         start_date TIMESTAMP,
         end_date TIMESTAMP,
-        PRIMARY KEY ((guid, brand), end_date, id)
+        PRIMARY KEY ((guid, brand), source, product, trace_id, end_date)
       ) WITH compression = { 'sstable_compression' : 'LZ4Compressor' };
     TABLE_CQL
     execute(cql)
 
     cql = <<-TABLE_CQL
       CREATE TABLE #{Cfg.config['tables']['history_entitlements']} (
-        id TIMEUUID,
         guid TEXT,
         source TEXT,
         brand TEXT,
@@ -27,7 +25,7 @@ class CreateEntitlements < Migration
         end_date TIMESTAMP,
         archive_date TIMESTAMP,
         archive_type TEXT,
-        PRIMARY KEY ((guid, brand), id)
+        PRIMARY KEY ((guid, brand), source, product, trace_id, archive_date)
       ) WITH compression = { 'sstable_compression' : 'LZ4Compressor' };
     TABLE_CQL
     execute(cql)
@@ -36,7 +34,7 @@ class CreateEntitlements < Migration
       CREATE TABLE #{Cfg.config['tables']['tc']} (
         guid TEXT,
         brand TEXT,
-        tc_version FLOAT,
+        tc_version TEXT,
         tc_acceptance_date TIMESTAMP,
         PRIMARY KEY (guid, brand)
       ) WITH compression = { 'sstable_compression' : 'LZ4Compressor' };
@@ -44,10 +42,12 @@ class CreateEntitlements < Migration
     execute(cql)
 
     cql = "CREATE MATERIALIZED VIEW #{Cfg.config['tables']['entitlements_by_enddate']}" +
-" AS SELECT end_date, id, guid, source, brand, product, trace_id, start_date FROM #{Cfg.config['tables']['entitlements']} " +
+" AS SELECT * FROM #{Cfg.config['tables']['entitlements']} " +
 " WHERE end_date IS NOT NULL AND guid IS NOT NULL AND brand IS NOT NULL " + 
-"AND id IS NOT NULL PRIMARY KEY (end_date, id, guid, brand)"
-#    execute(cql)
+"AND source IS NOT NULL AND product IS NOT NULL AND trace_id IS NOT NULL " +
+" PRIMARY KEY ((guid, brand, source, product, trace_id), end_date) " 
+#{}"WITH CLUSTERING ORDER BY (end_date ASC)"
+    execute(cql)
   end
 
   def down
