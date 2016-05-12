@@ -1,8 +1,8 @@
 require 'cassandra'
 require './config/config.rb'
-#require './lib/cassandra_record.rb'
-require './lib/connection.rb'
 require './lib/migration.rb'
+
+$logger = Logger.new(Cfg.config['logFile'], 'daily')
 
 desc 'create db'
 

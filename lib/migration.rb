@@ -1,6 +1,3 @@
-#require './lib/cassandra_record.rb'
-require './lib/connection.rb'
-
 class Migration
   def migrate
     up
