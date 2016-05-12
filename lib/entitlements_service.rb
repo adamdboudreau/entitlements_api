@@ -42,6 +42,12 @@ module EntitlementsService
       end
     end
 
+    resource :cql do
+      get do
+        Request::CQL.new(params).process
+      end
+    end
+
     resource :entitlements1 do
 
       desc 'Create an entitlement'

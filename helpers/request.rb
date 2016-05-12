@@ -138,4 +138,19 @@ module Request
 
 #-----------------------------------------------------------------------------------------------------------
 
+  class CQL < AbstractRequest
+
+    def initialize (params, httptype = :get)
+      super :cql, params, httptype
+    end
+
+    def process
+      @response = { response: Connection.instance.runCQL(@params) }
+      super
+    end
+
+  end
+
+#-----------------------------------------------------------------------------------------------------------
+
 end

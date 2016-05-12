@@ -41,7 +41,7 @@ class Connection
 
   def getEntitlements(params, exclude_future_entitlements = true)
     search_date = params['search_date'] ? Time.at(params['search_date'].to_i) : Time.now
-    cql = "SELECT source, product, trace_id, start_date, end_date FROM #{@table_entitlements} WHERE guid=? AND brand=? AND end_date>?"
+    cql = "SELECT * FROM #{@table_entitlements} WHERE guid=? AND brand=? AND end_date>?"
     args = [params['guid'], params['brand'], search_date]
     result = Array.new
     @connection.execute(cql, arguments: args).each do |row|
@@ -111,4 +111,18 @@ class Connection
     true
   end
 
+  def runCQL(params)
+  	result = Array.new
+  	begin
+      $logger.debug "\nConnection.runCQL, running CQL=#{params['q']}\n"
+      @connection.execute(params['q']).each do |row|
+        result << row
+      end 
+      $logger.debug "Connection.runCQL finished ok, result=#{result.to_s}"
+    rescue Exception => e  
+      $logger.debug "Connection.runCQL EXCEPTION: #{e.message}"
+      $logger.debug "Connection.runCQL backtrace: #{e.backtrace.inspect}"
+    end  
+    result
+  end
 end
