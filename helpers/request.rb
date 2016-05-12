@@ -1,5 +1,3 @@
-require './lib/connection.rb'
-
 module Request
 
 #-----------------------------------------------------------------------------------------------------------
@@ -11,7 +9,7 @@ module Request
       @type = type
       @params = params
       @httptype = httptype
-      @response = { success: "true" }
+      @response = { success: true }
       @error_message = nil
     end
 
@@ -27,7 +25,7 @@ module Request
         @response[:request][:input][k] = v
       end
       @response[:request][:processingTimeMs] = '%.03f' % ((Time.now.to_f - @start_time)*1000)
-      $logger.debug "\nRequest: /#{@type}/?" + URI.encode(@params.map{|k,v| "#{k}=#{v}"}.join("&")) + "\nResponse: #{@response.to_s}"
+      $logger.debug "\nRequest: /#{@type}/?" + URI.encode(@params.map{|k,v| "#{k}=#{v}"}.join("&")) + "\nResponse: #{@response.to_s}\n\n"
       @response
     end
 
@@ -64,17 +62,19 @@ module Request
 
     def process
       if @error_message = validate # validation failed
-        @response = { success: 'false', message: @error_message }
+        @response = { success: false, message: @error_message }
       else
         if @httptype==:put
-          @response = { success: 'false', message: @error_message } unless Connection.instance.putEntitled(@params)
+          @response = { success: false, message: @error_message } unless Connection.instance.putEntitled(@params)
         else
-          @response['entitled'] = Connection.instance.getEntitled(@params).to_s
+          entitled_dates = Connection.instance.getEntitled(@params)
+          @response['entitled'] = !!entitled_dates
+          @response['start_date'] = entitled_dates[:start_date] if entitled_dates[:start_date]
+          @response['end_date'] = entitled_dates[:end_date] if entitled_dates[:end_date]
         end
       end
       super
     end
-
   end
 
 #-----------------------------------------------------------------------------------------------------------
@@ -94,10 +94,10 @@ module Request
 
     def process
       if @error_message = validate # validation failed
-        @response = { success: 'false', message: @error_message }
+        @response = { success: false, message: @error_message }
       else
         if @httptype==:delete
-          @response = { success: 'false', message: @error_message } unless Connection.instance.deleteEntitlements(@params)
+          @response['deleted'] = Connection.instance.deleteEntitlements(@params)
         else
           @response['entitlements'] = Connection.instance.getEntitlements(@params)
         end
@@ -127,9 +127,9 @@ module Request
 
     def process
       if @error_message = validate # validation failed
-        @response = { success: 'false', message: @error_message }
+        @response = { success: false, message: @error_message }
       elsif @httptype==:put
-        @response = { success: 'false', message: @error_message } unless Connection.instance.putTC(@params)
+        @response = { success: false, message: @error_message } unless Connection.instance.putTC(@params)
       end
       super
     end

@@ -9,7 +9,7 @@ class CreateEntitlements < Migration
         trace_id TEXT,
         start_date TIMESTAMP,
         end_date TIMESTAMP,
-        PRIMARY KEY ((guid, brand), source, product, trace_id, end_date)
+        PRIMARY KEY ((guid, brand), end_date, source, product, trace_id)
       ) WITH compression = { 'sstable_compression' : 'LZ4Compressor' };
     TABLE_CQL
     execute(cql)
@@ -25,7 +25,7 @@ class CreateEntitlements < Migration
         end_date TIMESTAMP,
         archive_date TIMESTAMP,
         archive_type TEXT,
-        PRIMARY KEY ((guid, brand), source, product, trace_id, archive_date)
+        PRIMARY KEY ((guid, brand), end_date, source, product, trace_id, archive_date)
       ) WITH compression = { 'sstable_compression' : 'LZ4Compressor' };
     TABLE_CQL
     execute(cql)

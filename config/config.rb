@@ -3,10 +3,9 @@ require 'grape'
 require 'json'
 require 'singleton'
 
+require './lib/connection.rb'
 require './helpers/application_helper.rb'
 require './helpers/request.rb'
-require './models/entitlement.rb'
-require './models/tc.rb'
 
 class Cfg
   include Singleton
