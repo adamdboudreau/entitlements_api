@@ -18,7 +18,8 @@ RUN bundle install --jobs 20 --retry 5
 
 EXPOSE 9292
 
-CMD ["rake","delete","create","migrate"]
+RUN rake delete create migrate RAKE_ENV=dev
+
 CMD ["puma","-C","puma.rb"]
 
 # after build
