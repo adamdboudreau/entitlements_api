@@ -57,13 +57,11 @@ module Request
       return 'Incorrect start_date' if (@httptype==:put) && @params['start_date'] && (@params['start_date'].to_i.to_s!=@params['start_date'])
       return 'Incorrect end_date' if (@httptype==:put) && @params['end_date'] && (@params['end_date'].to_i.to_s!=@params['end_date'])
       return 'Incorrect tc_version' if (@httptype==:put) && @params['tc_version'] && (@params['tc_version'].to_f.to_s!=@params['tc_version'])
-      nil
+      true
     end
 
     def process
-      if @error_message = validate # validation failed
-        @response = { success: false, message: @error_message }
-      else
+      if (@error_message = validate) == true # validation ok
         if @httptype==:put
           @response = { success: false, message: @error_message } unless Connection.instance.putEntitled(@params)
         else
@@ -72,6 +70,8 @@ module Request
           @response['start_date'] = entitled_dates[:start_date] if entitled_dates[:start_date]
           @response['end_date'] = entitled_dates[:end_date] if entitled_dates[:end_date]
         end
+      else # validation failed
+        @response = { success: false, message: @error_message }
       end
       super
     end
@@ -89,18 +89,18 @@ module Request
       return 'Incorrect brand' unless Cfg.config['brands'].include? @params['brand']
       return 'Incorrect guid' unless @params['guid']
       return 'Incorrect source' if (@httptype==:delete) && !@params['source']
-      nil
+      true
     end
 
     def process
-      if @error_message = validate # validation failed
-        @response = { success: false, message: @error_message }
-      else
+      if (@error_message = validate) == true # validation ok
         if @httptype==:delete
           @response['deleted'] = Connection.instance.deleteEntitlements(@params)
         else
           @response['entitlements'] = Connection.instance.getEntitlements(@params)
         end
+      else # validation failed
+        @response = { success: false, message: @error_message }
       end
       super
     end
@@ -116,24 +116,25 @@ module Request
     end
 
     def validate
+puts "TC.validate. httptype=#{@httptype}"
+puts "TC.validate. @params['tc_version'].to_f.to_s != @params['tc_version'])=" +(@params['tc_version'].to_f.to_s != @params['tc_version']).to_s
       return 'Incorrect brand' unless Cfg.config['brands'].include? @params['brand']
       return 'Incorrect guid' unless @params['guid']
-      return 'Incorrect tc_version' unless (@httptype!=:put) || (@params['tc_version'].to_f.to_s == @params['tc_version'])
+      return 'Incorrect tc_version' if (@httptype==:put) && (@params['tc_version'].to_f.to_s != @params['tc_version'])
       # check if the passed version newer than existing one
       tc = Connection.instance.getTC(@params)
       return 'Too old tc_version to renew' if tc && (tc[:version].to_f > @params['tc_version'].to_f)
-      nil
+      true
     end
 
     def process
-      if @error_message = validate # validation failed
+      if (@error_message = validate) == true # validation ok
+        @response = { success: false, message: @error_message } if @httptype==:put && !Connection.instance.putTC(@params)
+      else
         @response = { success: false, message: @error_message }
-      elsif @httptype==:put
-        @response = { success: false, message: @error_message } unless Connection.instance.putTC(@params)
       end
       super
     end
-
   end
 
 #-----------------------------------------------------------------------------------------------------------

@@ -8,32 +8,46 @@ class Connection
     @table_tc = Cfg.config['cassandraCluster']['keyspace'] + '.' + Cfg.config['tables']['tc']
     @table_history = Cfg.config['cassandraCluster']['keyspace'] + '.' + Cfg.config['tables']['history_entitlements']
 
-  	cluster = { hosts: Cfg.config['cassandraCluster']['hosts'], port: Cfg.config['cassandraCluster']['port'] }
-  	cluster[:username] = Cfg.config['cassandraCluster']['username'] unless Cfg.config['cassandraCluster']['username'].empty?
-  	cluster[:password] = Cfg.config['cassandraCluster']['password'] unless Cfg.config['cassandraCluster']['password'].empty?
-    @connection = Cassandra.cluster(cluster).connect
+    cluster = { hosts: Cfg.config['cassandraCluster']['hosts'], port: Cfg.config['cassandraCluster']['port'] }
+    cluster[:username] = Cfg.config['cassandraCluster']['username'] unless Cfg.config['cassandraCluster']['username'].empty?
+    cluster[:password] = Cfg.config['cassandraCluster']['password'] unless Cfg.config['cassandraCluster']['password'].empty?
+    begin
+      @connection = Cassandra.cluster(cluster).connect
+    rescue Exception => e
+      $logger.error "Connection.initialize EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+    end
   end
 
   def putEntitled (params)
-    start_date = params['start_date'] ? Time.at(params['start_date'].to_i) : Time.now
-    end_date = params['end_date'] ? params['end_date'].to_i : Time.utc(2222, 1, 1)
-    cql = "UPDATE #{@table_entitlements} SET start_date=? WHERE end_date=? AND guid=? AND brand=? AND product=? AND source=? AND trace_id=?"
-    args = [start_date, end_date, params['guid'], params['brand'], params['product'], params['source'], params['trace_id']]
-    $logger.debug "\nConnection.putEntitled, running CQL=#{cql} with args=#{args}\n"
-    statement = @connection.prepare(cql)
-    @connection.execute(statement, arguments: args)
-    putTC(params) unless Request::TC.new(params).validate
-    true
+    begin
+      start_date = params['start_date'] ? Time.at(params['start_date'].to_i) : Time.now
+      end_date = params['end_date'] ? params['end_date'].to_i : Time.utc(2222, 1, 1)
+      cql = "UPDATE #{@table_entitlements} SET start_date=? WHERE end_date=? AND guid=? AND brand=? AND product=? AND source=? AND trace_id=?"
+      args = [start_date, end_date, params['guid'], params['brand'], params['product'], params['source'], params['trace_id']]
+      $logger.debug "\nConnection.putEntitled, running CQL=#{cql} with args=#{args}\n"
+      statement = @connection.prepare(cql)
+      @connection.execute(statement, arguments: args)
+puts "putEntitled. Request::TC.new(params).validate=#{Request::TC.new(params).validate}"
+      putTC(params) if Request::TC.new(params, :put).validate==true
+      true
+    rescue Exception => e
+      $logger.error "Connection.putEntitled EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+      false
+    end
   end
 
   def getEntitled(params)
-    search_date = params['search_date'] ? Time.at(params['search_date'].to_i) : Time.now
-    cql = "SELECT * FROM #{@table_entitlements_by_enddate} WHERE guid=? AND brand=? AND source=? AND product=? AND trace_id=? AND end_date>?"
-    args = [params['guid'], params['brand'], params['source'], params['product'], params['trace_id'], search_date]
-    $logger.debug "\nConnection.getEntitled, running CQL=#{cql} with args=#{args}\n"
     result = {}
-    @connection.execute(cql, arguments: args).each do |row|
-      result = { start_date: row['start_date'], end_date: row['end_date'] } if search_date>row['start_date']
+    begin
+      search_date = params['search_date'] ? Time.at(params['search_date'].to_i) : Time.now
+      cql = "SELECT toUnixTimestamp(start_date), toUnixTimestamp(end_date) FROM #{@table_entitlements_by_enddate} WHERE guid=? AND brand=? AND source=? AND product=? AND trace_id=? AND end_date>?"
+      args = [params['guid'], params['brand'], params['source'], params['product'], params['trace_id'], search_date]
+      $logger.debug "\nConnection.getEntitled, running CQL=#{cql} with args=#{args}\n"
+      @connection.execute(cql, arguments: args).each do |row|
+        result = { start_date: row['start_date'], end_date: row['end_date'] } if search_date>row['start_date']
+      end
+    rescue Exception => e
+      $logger.error "Connection.getEntitled EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
     end
     $logger.debug "\nConnection.getEntitled, running CQL=#{cql} with args=#{args} returns #{result.to_s}\n"
     result  
@@ -43,7 +57,7 @@ class Connection
     result = Array.new
     begin
       search_date = params['search_date'] ? Time.at(params['search_date'].to_i) : Time.now
-      cql = "SELECT source, product, trace_id, start_date, end_date FROM #{@table_entitlements} WHERE guid=? AND brand=? AND end_date>?"
+      cql = "SELECT source, product, trace_id, toUnixTimestamp(start_date), toUnixTimestamp(end_date) FROM #{@table_entitlements} WHERE guid=? AND brand=? AND end_date>?"
       args = [params['guid'], params['brand'], search_date]
       @connection.execute(cql, arguments: args).each do |row|
         result << row unless ((exclude_future_entitlements && (search_date<row['start_date'])) || 
@@ -53,8 +67,7 @@ class Connection
         	                   )
       end
     rescue Exception => e
-      $logger.error "Connection.deleteEntitlements EXCEPTION: #{e.message}"
-      $logger.error "Connection.deleteEntitlements backtrace: #{e.backtrace.inspect}"
+      $logger.error "Connection.getEntitlements EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
     end  
     $logger.debug "\nConnection.getEntitlements, running CQL=#{cql} with args=#{args}, returning #{result.length} row(s)\n"
     result  
@@ -77,9 +90,8 @@ class Connection
       end
       @connection.execute(batch)
     rescue Exception => e
-      $logger.error "Connection.deleteEntitlements EXCEPTION: #{e.message}"
-      $logger.error "Connection.deleteEntitlements backtrace: #{e.backtrace.inspect}"
-    end  
+      $logger.error "Connection.deleteEntitlements EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+    end
     result
   end
 
@@ -98,9 +110,8 @@ class Connection
       @connection.execute(batch)
       $logger.debug "\nConnection.archiveEntitlements, running CQL=#{cql}, returns #{result.to_s}\n"
     rescue Exception => e
-      $logger.error "Connection.archiveEntitlements EXCEPTION: #{e.message}"
-      $logger.error "Connection.archiveEntitlements backtrace: #{e.backtrace.inspect}"
-    end  
+      $logger.error "Connection.archiveEntitlements EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+    end
     result
   end
 
@@ -115,8 +126,7 @@ class Connection
           result = { version: row['tc_version'], acceptance_date: row['tc_acceptance_date'] }
         end 
       rescue Exception => e
-        $logger.error "Connection.getTC EXCEPTION: #{e.message}"
-        $logger.error "Connection.getTC backtrace: #{e.backtrace.inspect}"
+        $logger.error "Connection.getTC EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
       end  
     end
     result  
@@ -130,11 +140,10 @@ class Connection
       statement = @connection.prepare(cql)
       @connection.execute(statement, arguments: args)
       true
-    rescue Exception => e  
-      $logger.error "Connection.putTC EXCEPTION: #{e.message}"
-      $logger.error "Connection.putTC backtrace: #{e.backtrace.inspect}"
+    rescue Exception => e
+      $logger.error "Connection.putTC EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
       false
-    end  
+    end
    end
 
   def runCQL(params)
@@ -145,10 +154,9 @@ class Connection
         result << row
       end 
       $logger.debug "Connection.runCQL finished ok, result=#{result.to_s}"
-    rescue Exception => e  
-      $logger.error "Connection.runCQL EXCEPTION: #{e.message}"
-      $logger.error "Connection.runCQL backtrace: #{e.backtrace.inspect}"
-    end  
+    rescue Exception => e
+      $logger.error "Connection.runCQL EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+    end
     result
   end
 end
