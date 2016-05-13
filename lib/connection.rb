@@ -46,8 +46,8 @@ class Connection
     result = Array.new
     @connection.execute(cql, arguments: args).each do |row|
       result << row unless ((exclude_future_entitlements && (search_date<row['start_date'])) || 
-      	                    (params['source'] && row['source']!=params['source']) || 
-      	                    (params['product'] && row['product']!=params['product']) || 
+                            (params['source'] && row['source']!=params['source']) || 
+                            (params['product'] && row['product']!=params['product']) || 
       	                    (params['trace_id'] && row['trace_id']!=params['trace_id'])
       	                   )
     end
