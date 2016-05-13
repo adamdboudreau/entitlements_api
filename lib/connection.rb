@@ -41,7 +41,7 @@ class Connection
 
   def getEntitlements(params, exclude_future_entitlements = true)
     search_date = params['search_date'] ? Time.at(params['search_date'].to_i) : Time.now
-    cql = "SELECT * FROM #{@table_entitlements} WHERE guid=? AND brand=? AND end_date>?"
+    cql = "SELECT source, product, trace_id, start_date, end_date FROM #{@table_entitlements} WHERE guid=? AND brand=? AND end_date>?"
     args = [params['guid'], params['brand'], search_date]
     result = Array.new
     @connection.execute(cql, arguments: args).each do |row|
