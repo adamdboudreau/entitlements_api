@@ -16,9 +16,9 @@ WORKDIR /usr/src/app
 
 RUN bundle install --jobs 20 --retry 5
 
-EXPOSE 9292
-
 RUN rake delete create migrate RAKE_ENV=dev
+
+EXPOSE 9292
 
 CMD ["puma","-C","puma.rb"]
 
