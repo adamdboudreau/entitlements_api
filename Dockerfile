@@ -21,6 +21,4 @@ EXPOSE 9292
 CMD ["puma","-C","puma.rb"]
 
 # after build
-rake delete RACK_ENV=dev
-rake create RACK_ENV=dev
-rake migrate RACK_ENV=dev
+RUN rake delete create migrate RACK_ENV=dev
