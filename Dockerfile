@@ -18,7 +18,8 @@ RUN bundle install --jobs 20 --retry 5
 
 EXPOSE 9292
 
+CMD ["rake","delete","create","migrate"]
 CMD ["puma","-C","puma.rb"]
 
 # after build
-CMD ["rake","delete","create","migrate"]
+
