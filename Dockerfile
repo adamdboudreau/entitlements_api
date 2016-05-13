@@ -16,7 +16,7 @@ WORKDIR /usr/src/app
 
 RUN bundle install --jobs 20 --retry 5
 
-RUN rake delete create migrate RAKE_ENV=dev
+RUN ["rake","delete","create","migrate","RAKE_ENV=dev"]
 
 EXPOSE 9292
 
