@@ -49,3 +49,13 @@ def migrate_all
     migration_class.new.migrate
   end
 end
+
+desc 'delete'
+task :delete do
+  @connection ||= Connection.instance.connection
+  @connection.execute("DROP TABLE IF EXISTS #{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['tc']}")
+  @connection.execute("DROP TABLE IF EXISTS #{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['history_entitlements']}")
+  @connection.execute("DROP MATERIALIZED VIEW IF EXISTS #{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements_by_enddate']}")
+  @connection.execute("DROP TABLE IF EXISTS #{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements']}")
+#  @connection.execute("DROP KEYSPACE IF EXISTS #{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements']}")
+end

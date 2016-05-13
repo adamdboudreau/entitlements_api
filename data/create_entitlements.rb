@@ -63,6 +63,7 @@ class CreateEntitlements < Migration
   def down
     execute("DROP TABLE IF EXISTS #{Cfg.config['tables']['tc']}")
     execute("DROP TABLE IF EXISTS #{Cfg.config['tables']['history_entitlements']}")
+    execute("DROP TABLE IF EXISTS #{Cfg.config['tables']['entitlements_by_enddate']}")
     execute("DROP TABLE IF EXISTS #{Cfg.config['tables']['entitlements']}")
   end
 end
