@@ -22,4 +22,4 @@ CMD ["puma","-C","puma.rb"]
 
 # after build
 
-CMD ["rake","delete","create","migrate","RAKE_ENV=dev"]
+#CMD ["rake","delete","create","migrate","RAKE_ENV=dev"]
