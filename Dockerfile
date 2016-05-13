@@ -21,4 +21,4 @@ EXPOSE 9292
 CMD ["puma","-C","puma.rb"]
 
 # after build
-rake delete create migrate
+CMD ["rake","delete","create","migrate"]
