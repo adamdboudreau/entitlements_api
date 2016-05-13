@@ -16,11 +16,10 @@ WORKDIR /usr/src/app
 
 RUN bundle install --jobs 20 --retry 5
 
-CMD ["rake","delete","create","migrate","RAKE_ENV=dev"]
-
 EXPOSE 9292
 
 CMD ["puma","-C","puma.rb"]
 
 # after build
 
+CMD ["rake","delete","create","migrate","RAKE_ENV=dev"]
