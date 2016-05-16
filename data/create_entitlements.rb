@@ -8,7 +8,7 @@ class CreateEntitlements < Migration
         source TEXT,
         product TEXT,
         trace_id TEXT,
-        qq TEXT,
+        qqq TEXT,
         start_date TIMESTAMP,
         end_date TIMESTAMP,
         PRIMARY KEY ((guid, brand), end_date, source, product, trace_id)
