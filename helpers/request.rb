@@ -48,6 +48,7 @@ module Request
     end
 
     def validate
+      $logger.debug "\nEntitled.validate started\n"
       return 'Incorrect brand' unless Cfg.config['brands'].include? @params['brand']
       return 'Incorrect guid' unless @params['guid']
       return 'Incorrect source' unless @params['source']
@@ -57,16 +58,18 @@ module Request
       return 'Incorrect start_date' if (@httptype==:put) && @params['start_date'] && (@params['start_date'].to_i.to_s!=@params['start_date'])
       return 'Incorrect end_date' if (@httptype==:put) && @params['end_date'] && (@params['end_date'].to_i.to_s!=@params['end_date'])
       return 'Incorrect tc_version' if (@httptype==:put) && @params['tc_version'] && (@params['tc_version'].to_f.to_s!=@params['tc_version'])
+      $logger.debug "\nEntitled.validate finished ok\n"
       true
     end
 
     def process
+      $logger.debug "\nEntitled.process started\n"
       if (@error_message = validate) == true # validation ok
         if @httptype==:put
           @response = { success: false, message: @error_message } unless Connection.instance.putEntitled(@params)
         else
           entitled_dates = Connection.instance.getEntitled(@params)
-          @response['entitled'] = !!entitled_dates
+          @response['entitled'] = !entitled_dates[:end_date].nil?
           @response['start_date'] = entitled_dates[:start_date] if entitled_dates[:start_date]
           @response['end_date'] = entitled_dates[:end_date] if entitled_dates[:end_date]
         end
@@ -96,6 +99,9 @@ module Request
       if (@error_message = validate) == true # validation ok
         if @httptype==:delete
           @response['deleted'] = Connection.instance.deleteEntitlements(@params)
+          if (@response['deleted']<0)
+            @response = { success: false, message: 'Unknown error during deleting' }
+          end
         else
           @response['entitlements'] = Connection.instance.getEntitlements(@params)
         end
@@ -116,8 +122,6 @@ module Request
     end
 
     def validate
-puts "TC.validate. httptype=#{@httptype}"
-puts "TC.validate. @params['tc_version'].to_f.to_s != @params['tc_version'])=" +(@params['tc_version'].to_f.to_s != @params['tc_version']).to_s
       return 'Incorrect brand' unless Cfg.config['brands'].include? @params['brand']
       return 'Incorrect guid' unless @params['guid']
       return 'Incorrect tc_version' if (@httptype==:put) && (@params['tc_version'].to_f.to_s != @params['tc_version'])

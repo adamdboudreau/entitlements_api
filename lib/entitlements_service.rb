@@ -1,5 +1,4 @@
 require './config/config.rb'
-#require './lib/cassandra_record.rb'
 
 module EntitlementsService
   class API < Grape::API
@@ -14,6 +13,7 @@ module EntitlementsService
 
     resource :entitled do
       get do
+        $logger.debug "GET entitled started with params: #{params}"
         Request::Entitled.new(params).process
       end
       put do
