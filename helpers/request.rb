@@ -126,8 +126,10 @@ module Request
       return 'Incorrect guid' unless @params['guid']
       return 'Incorrect tc_version' if (@httptype==:put) && (@params['tc_version'].to_f.to_s != @params['tc_version'])
       # check if the passed version newer than existing one
-      tc = Connection.instance.getTC(@params)
-      return 'Too old tc_version to renew' if tc && (tc[:version].to_f > @params['tc_version'].to_f)
+      if @httptype==:put
+        tc = Connection.instance.getTC(@params)
+        return 'Too old tc_version to renew' if tc && (tc[:version].to_f > @params['tc_version'].to_f)
+      end
       true
     end
 
