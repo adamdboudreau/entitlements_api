@@ -19,9 +19,10 @@ class Connection
   end
 
   def putEntitled (params)
+    $logger.debug "\nConnection.putEntitled started with params: #{params}\n"
     begin
+      self.deleteEntitlements(params, 'Updated')
       start_date = params['start_date'] ? Time.at(params['start_date']) : Time.now
-#      start_date = params['start_date'] ? Time.at(params['start_date'].to_i) : Time.now
       end_date = params['end_date'] ? Time.at(params['end_date'].to_i) : Time.utc(2222, 1, 1)
       cql = "UPDATE #{@table_entitlements} SET start_date=? WHERE end_date=? AND guid=? AND brand=? AND product=? AND source=? AND trace_id=?"
       args = [start_date, end_date, params['guid'], params['brand'], params['product'], params['source'], params['trace_id']]
@@ -37,7 +38,7 @@ class Connection
   end
 
   def getEntitled(params)
-    $logger.debug "\nConnection.getEntitled started\n"
+    $logger.debug "\nConnection.getEntitled started with params: #{params}\n"
     result = {}
     begin
       search_date = (params['search_date'] ? Time.at(params['search_date']) : Time.now).to_i*1000
@@ -56,6 +57,7 @@ class Connection
   end
 
   def getEntitlements(params, exclude_future_entitlements = true)
+    $logger.debug "\nConnection.getEntitlements started with params: #{params}, exclude_future_entitlements=#{exclude_future_entitlements}\n"
     result = Array.new
     begin
       search_date = (params['search_date'] ? Time.at(params['search_date']) : Time.now).to_i*1000
@@ -79,13 +81,14 @@ class Connection
     result  
   end
 
-  def deleteEntitlements(params)
+  def deleteEntitlements(params, msg = 'Deleted')
+    $logger.debug "\nConnection.deleteEntitlements started with params: #{params}, msg=#{msg}\n"
     result = 0
     begin
       batch = @connection.batch do |batch|
         getEntitlements(params, false).each do |row|
           cql1 = "DELETE FROM #{@table_entitlements} WHERE guid=? AND brand=? AND source=? AND product=? AND trace_id=? AND end_date=?"
-          cql2 = "UPDATE #{@table_history} SET archive_type='Deleted',start_date=? WHERE guid=? AND brand=? AND source=? AND product=? AND trace_id=? AND end_date=? AND archive_date=toTimestamp(NOW())"
+          cql2 = "UPDATE #{@table_history} SET archive_type='#{msg}',start_date=? WHERE guid=? AND brand=? AND source=? AND product=? AND trace_id=? AND end_date=? AND archive_date=toTimestamp(NOW())"
           args = Array[params['guid'],params['brand'],row['source'],row['product'],row['trace_id'],row['end_date']*1000]
           $logger.debug "Connection.deleteEntitlements, adding to batch: CQL=#{cql1} with arguments: #{args}}\n"
           batch.add(cql1, arguments: args)
@@ -104,6 +107,7 @@ class Connection
   end
 
   def archiveEntitlements()
+    $logger.debug "\nConnection.archiveEntitlements started\n"
     result = 0
     cql = "SELECT * FROM #{@table_entitlements_by_enddate} WHERE end_date<toTimestamp(NOW()) ALLOW FILTERING"
     begin
@@ -124,6 +128,7 @@ class Connection
   end
 
   def getTC(params)
+    $logger.debug "\nConnection.getTC started with params: #{params}\n"
     result = nil
     if params['guid'] && (Cfg.config['brands'].include? params['brand'])
       begin
@@ -141,6 +146,7 @@ class Connection
   end
 
   def putTC(params)
+    $logger.debug "\nConnection.putTC started with params: #{params}\n"
     begin
       cql = "UPDATE #{@table_tc} SET tc_acceptance_date=toTimestamp(now()), tc_version=? WHERE guid=? AND brand=?"
       args = [params['tc_version'], params['guid'], params['brand']]
@@ -155,9 +161,9 @@ class Connection
    end
 
   def runCQL(params)
+    $logger.debug "\nConnection.runCQL started with params: #{params}\n"
   	result = Array.new
   	begin
-      $logger.debug "\nConnection.runCQL, running CQL=#{params['q']}\n"
       @connection.execute(params['q']).each do |row|
         result << row
       end 

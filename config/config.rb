@@ -5,7 +5,6 @@ require 'singleton'
 
 require './lib/connection.rb'
 require './lib/entitlements_service.rb'
-require './helpers/application_helper.rb'
 require './helpers/request.rb'
 
 class Cfg
