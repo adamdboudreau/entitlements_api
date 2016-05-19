@@ -13,8 +13,16 @@ module Request
       @error_message = nil
     end
 
-    def process
+    def validate
+      $logger.debug "\nAbstractRequest.validate started\n"
+      return 'Incorrect brand' unless Cfg.config['brands'].include? @params['brand']
+      return 'Incorrect guid' unless @params['guid']
+      return 'Incorrect start_date' if @params['start_date'] && (@params['start_date'].to_i.to_s != @params['start_date'])
+      return 'Incorrect end_date' if @params['end_date'] && (@params['end_date'].to_i.to_s != @params['end_date'])
+      true
+    end
 
+    def process
       tc = ((@httptype==:get) && (@type!=:heartbeat)) ? Connection.instance.getTC(@params) : nil
       @response[:tc] = tc if tc
 
@@ -49,8 +57,6 @@ module Request
 
     def validate
       $logger.debug "\nEntitled.validate started\n"
-      return 'Incorrect brand' unless Cfg.config['brands'].include? @params['brand']
-      return 'Incorrect guid' unless @params['guid']
       return 'Incorrect source' unless @params['source']
       return 'Incorrect product' unless @params['product']
       return 'Incorrect trace_id' unless @params['trace_id']
@@ -59,7 +65,7 @@ module Request
       return 'Incorrect end_date' if (@httptype==:put) && @params['end_date'] && (@params['end_date'].to_i.to_s!=@params['end_date'])
       return 'Incorrect tc_version' if (@httptype==:put) && @params['tc_version'] && (@params['tc_version'].to_f.to_s!=@params['tc_version'])
       $logger.debug "\nEntitled.validate finished ok\n"
-      true
+      super
     end
 
     def process
@@ -89,10 +95,8 @@ module Request
     end
 
     def validate
-      return 'Incorrect brand' unless Cfg.config['brands'].include? @params['brand']
-      return 'Incorrect guid' unless @params['guid']
       return 'Incorrect source' if (@httptype==:delete) && !@params['source']
-      true
+      super
     end
 
     def process
@@ -122,20 +126,39 @@ module Request
     end
 
     def validate
-      return 'Incorrect brand' unless Cfg.config['brands'].include? @params['brand']
-      return 'Incorrect guid' unless @params['guid']
       # check if the passed version newer than existing one
       if @httptype==:put
         return 'Incorrect tc_version' unless @params['tc_version'].to_f.to_s == @params['tc_version']
         tc = Connection.instance.getTC(@params)
         return 'Too old tc_version to renew' if tc && (tc[:version].to_f > @params['tc_version'].to_f)
       end
-      true
+      super
     end
 
     def process
       if (@error_message = validate) == true # validation ok
         @response = { success: false, message: @error_message } if @httptype==:put && !Connection.instance.putTC(@params)
+      else
+        @response = { success: false, message: @error_message }
+      end
+      super
+    end
+  end
+
+#-----------------------------------------------------------------------------------------------------------
+
+  class Archive < AbstractRequest
+
+    def initialize (params, httptype = :get)
+      super :archive, params, httptype
+    end
+
+    def process
+      if @httptype == :post
+        @response['processed'] = Connection.instance.postArchive
+        @response = { success: false, message: 'Unknown error' } if @response['processed'] < 0
+      elsif (@error_message = validate) == true # validation ok
+        @response['entitlements'] = Connection.instance.getArchive(@params)
       else
         @response = { success: false, message: @error_message }
       end
