@@ -18,10 +18,11 @@ class Connection
     end
   end
 
-  def putEntitled (params)
+  def putEntitled (params) # return a number of deleted records, or -1 if error
     $logger.debug "\nConnection.putEntitled started with params: #{params}\n"
+    result = 0
     begin
-      self.deleteEntitlements(params, 'Updated')
+      result = self.deleteEntitlements(params, 'Updated')
       start_date = params['start_date'] ? Time.at(params['start_date']) : Time.now
       end_date = params['end_date'] ? Time.at(params['end_date'].to_i) : Time.utc(2222, 1, 1)
       cql = "UPDATE #{@table_entitlements} SET start_date=? WHERE end_date=? AND guid=? AND brand=? AND product=? AND source=? AND trace_id=?"
@@ -30,11 +31,11 @@ class Connection
       statement = @connection.prepare(cql)
       @connection.execute(statement, arguments: args)
       putTC(params) if Request::TC.new(params, :put).validate==true
-      true
     rescue Exception => e
       $logger.error "Connection.putEntitled EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
-      false
+      result = -1
     end
+    result
   end
 
   def getEntitled(params)
@@ -59,6 +60,7 @@ class Connection
   def getEntitlements(params, exclude_future_entitlements = true)
     $logger.debug "\nConnection.getEntitlements started with params: #{params}, exclude_future_entitlements=#{exclude_future_entitlements}\n"
     result = Array.new
+    products = params['products'] ? params['products'].split(',') : (params['product'] ? [params['product']] : nil)
     begin
       search_date = (params['search_date'] ? Time.at(params['search_date']) : Time.now).to_i*1000
       cql = "SELECT guid, brand, source, product, trace_id, toUnixTimestamp(start_date) AS start_date, toUnixTimestamp(end_date) AS end_date FROM #{@table_entitlements} WHERE guid=? AND brand=? AND end_date>?"
@@ -66,7 +68,7 @@ class Connection
       @connection.execute(cql, arguments: args).each do |row|
         unless ((exclude_future_entitlements && (search_date<row['start_date'])) || 
                 (params['source'] && row['source']!=params['source']) || 
-                (params['product'] && row['product']!=params['product']) || 
+                (products && (!products.include? row['product'])) || 
                 (params['trace_id'] && row['trace_id']!=params['trace_id'])
                )
           row['start_date'] = row['start_date']/1000

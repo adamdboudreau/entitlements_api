@@ -26,13 +26,15 @@ module Request
       tc = ((@httptype==:get) && (@type!=:heartbeat)) ? Connection.instance.getTC(@params) : nil
       @response[:tc] = tc if tc
 
-      @response[:request] = {}
-      @response[:request][:type] = "#{@httptype.upcase} #{@type}"
-      @response[:request][:input] = {}
-      @params.each do |k, v| # return passed values
-        @response[:request][:input][k] = v
+      if @params['echo']
+        @response[:request] = {}
+        @response[:request][:type] = "#{@httptype.upcase} #{@type}"
+        @response[:request][:input] = {}
+        @params.each do |k, v| # return passed values
+          @response[:request][:input][k] = v
+        end
       end
-      @response[:request][:processingTimeMs] = '%.03f' % ((Time.now.to_f - @start_time)*1000)
+      @response[:processingTimeMs] = '%.03f' % ((Time.now.to_f - @start_time)*1000)
       $logger.debug "\nRequest: /#{@type}/?" + URI.encode(@params.map{|k,v| "#{k}=#{v}"}.join("&")) + "\nResponse: #{@response.to_s}\n\n"
       @response
     end
@@ -72,7 +74,9 @@ module Request
       $logger.debug "\nEntitled.process started\n"
       if (@error_message = validate) == true # validation ok
         if @httptype==:put
-          @response = { success: false, message: @error_message } unless Connection.instance.putEntitled(@params)
+          nDeleted = Connection.instance.putEntitled(@params)
+          @response['updated'] = !(@response['created'] = (nDeleted==0))
+          @response = { success: false, message: @error_message } if nDeleted<0 
         else
           entitled_dates = Connection.instance.getEntitled(@params)
           @response['entitled'] = !entitled_dates[:end_date].nil?
@@ -103,9 +107,7 @@ module Request
       if (@error_message = validate) == true # validation ok
         if @httptype==:delete
           @response['deleted'] = Connection.instance.deleteEntitlements(@params)
-          if (@response['deleted']<0)
-            @response = { success: false, message: 'Unknown error during deleting' }
-          end
+          @response = { success: false, message: 'Unknown error during deleting' } if @response['deleted']<0
         else
           @response['entitlements'] = Connection.instance.getEntitlements(@params)
         end
