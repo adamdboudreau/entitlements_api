@@ -76,12 +76,12 @@ module Request
         if @httptype==:put
           nDeleted = Connection.instance.putEntitled(@params)
           @response['updated'] = !(@response['created'] = (nDeleted==0))
-          @response = { success: false, message: @error_message } if nDeleted<0 
+          @response = { success: false, message: 'Unknown error' } if nDeleted<0 
         else
-          entitled_dates = Connection.instance.getEntitled(@params)
-          @response['entitled'] = !entitled_dates[:end_date].nil?
-          @response['start_date'] = entitled_dates[:start_date] if entitled_dates[:start_date]
-          @response['end_date'] = entitled_dates[:end_date] if entitled_dates[:end_date]
+          entitled = Connection.instance.getEntitled(@params)
+          @response = { success: entitled[:success], entitled: entitled[:entitled] }
+          @response['start_date'] = entitled[:start_date] if entitled[:start_date]
+          @response['end_date'] = entitled[:end_date] if entitled[:end_date]
         end
       else # validation failed
         @response = { success: false, message: @error_message }

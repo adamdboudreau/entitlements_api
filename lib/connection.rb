@@ -40,7 +40,7 @@ class Connection
 
   def getEntitled(params)
     $logger.debug "\nConnection.getEntitled started with params: #{params}\n"
-    result = {}
+    result = { success: true, entitled: false }
     begin
       search_date = (params['search_date'] ? Time.at(params['search_date']) : Time.now).to_i*1000
       cql = "SELECT toUnixTimestamp(start_date) AS start_date, toUnixTimestamp(end_date) AS end_date FROM #{@table_entitlements_by_enddate} WHERE guid=? AND brand=? AND source=? AND product=? AND trace_id=? AND end_date>?"
@@ -48,13 +48,14 @@ class Connection
       $logger.debug "\nConnection.getEntitled, running CQL=#{cql} with args=#{args}\n"
       @connection.execute(cql, arguments: args).each do |row|
         $logger.debug "\nConnection.getEntitled got line: #{row}\n"
-        result = { start_date: row['start_date'].to_i/1000, end_date: row['end_date'].to_i/1000 } if search_date>row['start_date']
+        result = { success: true, entitled: true, start_date: row['start_date'].to_i/1000, end_date: row['end_date'].to_i/1000 } if search_date>row['start_date']
       end
     rescue Exception => e
       $logger.error "Connection.getEntitled EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+      result = { success: false, entitled: true }
     end
     $logger.debug "\nConnection.getEntitled returns #{result.to_s}\n"
-    result  
+    result
   end
 
   def getEntitlements(params, exclude_future_entitlements = true)
