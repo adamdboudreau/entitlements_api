@@ -7,53 +7,52 @@ module EntitlementsService
 
     resource :heartbeat do
       get do
-        Request::Heartbeat.new(params).process
+        Request::Heartbeat.new(headers, params).process
       end
     end
 
     resource :entitled do
       get do
-        $logger.debug "GET entitled started with params: #{params}"
-        Request::Entitled.new(params).process
+        Request::Entitled.new(headers, params).process
       end
       put do
-        Request::Entitled.new(params, :put).process
+        Request::Entitled.new(headers, params, :put).process
       end
     end
 
     resource :entitlements do
       get do
-        Request::Entitlements.new(params).process
+        Request::Entitlements.new(headers, params).process
       end
       put do
-        Request::Entitlements.new(params, :put).process
+        Request::Entitlements.new(headers, params, :put).process
       end
       delete do
-        Request::Entitlements.new(params, :delete).process
+        Request::Entitlements.new(headers, params, :delete).process
       end
     end
 
     resource :tc do
       get do
-        Request::TC.new(params).process
+        Request::TC.new(headers, params).process
       end
       put do
-        Request::TC.new(params, :put).process
+        Request::TC.new(headers, params, :put).process
       end
     end
 
     resource :archive do
       get do
-        Request::Archive.new(params).process
+        Request::Archive.new(headers, params).process
       end
       post do
-        Request::Archive.new(params, :post).process
+        Request::Archive.new(headers, params, :post).process
       end
     end
 
     resource :cql do
       get do
-        Request::CQL.new(params).process
+        Request::CQL.new(headers, params).process
       end
     end
 

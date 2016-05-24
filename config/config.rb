@@ -2,6 +2,7 @@ require 'cassandra'
 require 'grape'
 require 'json'
 require 'singleton'
+require 'net/http'
 
 require './lib/connection.rb'
 require './lib/entitlements_service.rb'

@@ -4,17 +4,23 @@ module Request
 
   class AbstractRequest
 
-    def initialize (type, params = {}, httptype = :get)
+    def initialize (type, headers, params = {}, httptype = :get)
       @start_time = Time.now.to_f
       @type = type
       @params = params
       @httptype = httptype
       @response = { success: true }
       @error_message = nil
+      @api_key = headers['Authorization']
     end
 
     def validate
       $logger.debug "\nAbstractRequest.validate started\n"
+      return 'Incorrect API key' unless Cfg.config['apiKeys'][@api_key]
+      return 'Not authorized' unless Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s] && Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s][@type.to_s]
+      return 'API key expired' unless DateTime.parse(Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s][@type.to_s])>DateTime.now
+      return true if (@httptype==:get) && (@type==:heartbeat || @type==:cql)
+      return true if (@httptype==:put) && (@type==:archive)
       return 'Incorrect brand' unless Cfg.config['brands'].include? @params['brand']
       return 'Incorrect guid' unless @params['guid']
       return 'Incorrect start_date' if @params['start_date'] && (@params['start_date'].to_i.to_s != @params['start_date'])
@@ -44,8 +50,13 @@ module Request
 #-----------------------------------------------------------------------------------------------------------
 
   class Heartbeat < AbstractRequest
-    def initialize (params)
-      super :heartbeat, params
+    def initialize (headers, params)
+      super :heartbeat, headers, params
+    end
+
+    def process
+      @response = { success: false, message: @error_message } unless (@error_message = validate) == true
+      super
     end
   end
 
@@ -53,12 +64,13 @@ module Request
 
   class Entitled < AbstractRequest
 
-    def initialize (params, httptype = :get)
-      super :entitled, params, httptype
+    def initialize (headers, params, httptype = :get)
+      super :entitled, headers, params, httptype
     end
 
     def validate
       $logger.debug "\nEntitled.validate started\n"
+      return @error_message unless (@error_message = super) == true
       return 'Incorrect source' unless @params['source']
       return 'Incorrect product' unless @params['product']
       return 'Incorrect trace_id' unless @params['trace_id']
@@ -67,7 +79,7 @@ module Request
       return 'Incorrect end_date' if (@httptype==:put) && @params['end_date'] && (@params['end_date'].to_i.to_s!=@params['end_date'])
       return 'Incorrect tc_version' if (@httptype==:put) && @params['tc_version'] && (@params['tc_version'].to_f.to_s!=@params['tc_version'])
       $logger.debug "\nEntitled.validate finished ok\n"
-      super
+      true
     end
 
     def process
@@ -94,13 +106,14 @@ module Request
 
   class Entitlements < AbstractRequest
 
-    def initialize (params, httptype = :get)
-      super :entitlements, params, httptype
+    def initialize (headers, params, httptype = :get)
+      super :entitlements, headers, params, httptype
     end
 
     def validate
+      return @error_message unless (@error_message = super) == true
       return 'Incorrect source' if (@httptype==:delete) && !@params['source']
-      super
+      true
     end
 
     def process
@@ -123,18 +136,19 @@ module Request
 
   class TC < AbstractRequest
 
-    def initialize (params, httptype = :get)
-      super :tc, params, httptype
+    def initialize (headers, params, httptype = :get)
+      super :tc, headers, params, httptype
     end
 
     def validate
       # check if the passed version newer than existing one
+      return @error_message unless (@error_message = super) == true
       if @httptype==:put
         return 'Incorrect tc_version' unless @params['tc_version'].to_f.to_s == @params['tc_version']
         tc = Connection.instance.getTC(@params)
         return 'Too old tc_version to renew' if tc && (tc[:version].to_f > @params['tc_version'].to_f)
       end
-      super
+      true
     end
 
     def process
@@ -151,16 +165,18 @@ module Request
 
   class Archive < AbstractRequest
 
-    def initialize (params, httptype = :get)
-      super :archive, params, httptype
+    def initialize (headers, params, httptype = :get)
+      super :archive, headers, params, httptype
     end
 
     def process
-      if @httptype == :post
-        @response['processed'] = Connection.instance.postArchive
-        @response = { success: false, message: 'Unknown error' } if @response['processed'] < 0
-      elsif (@error_message = validate) == true # validation ok
-        @response['entitlements'] = Connection.instance.getArchive(@params)
+      if (@error_message = validate) == true
+        if @httptype == :post
+          @response['processed'] = Connection.instance.postArchive
+          @response = { success: false, message: 'Unknown error' } if @response['processed'] < 0
+        else
+          @response['entitlements'] = Connection.instance.getArchive(@params)
+        end
       else
         @response = { success: false, message: @error_message }
       end
@@ -172,12 +188,12 @@ module Request
 
   class CQL < AbstractRequest
 
-    def initialize (params, httptype = :get)
-      super :cql, params, httptype
+    def initialize (headers, params, httptype = :get)
+      super :cql, headers, params, httptype
     end
 
     def process
-      @response = { response: Connection.instance.runCQL(@params) }
+      @response = ((@error_message = validate) == true) ? { response: Connection.instance.runCQL(@params) } : { success: false, message: @error_message }
       super
     end
 

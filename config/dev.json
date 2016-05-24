@@ -17,5 +17,26 @@
                           "entitlements_by_enddate" : "entitlements_by_enddate"
   },
   "brands"             : ["gcl", "texture", "shomi"],
+  "apiKeys"            : {
+                           "K1fun0W7ZG9LVgrUh2A8XA64ENf7e43w" : {
+                             "description": "Sergey Skyba development",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitled"     : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01",
+                                            "cql"          : "2099-12-31 00:00:01"
+                                          },
+                               "put"    : {
+                                            "entitled" : "2099-12-31 00:00:01",
+                                            "tc"       : "2099-12-31 00:00:01"
+                                          },
+                               "post"   : { "archive" : "2099-12-31 00:00:01" },
+                               "delete" : { "entitlements" : "2099-12-31 00:00:01" }
+                             }
+                           }
+                         },
   "archiveLimitPerRun" : 500
 }
