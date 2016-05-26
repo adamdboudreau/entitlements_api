@@ -18,6 +18,14 @@ class Connection
     end
   end
 
+  def close
+    @connection = nil
+  end
+
+  def connect
+    initialize
+  end
+
   def putEntitled (params) # return a number of deleted records, or -1 if error
     $logger.debug "\nConnection.putEntitled started with params: #{params}\n"
     result = 0

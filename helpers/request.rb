@@ -12,6 +12,8 @@ module Request
       @response = { success: true }
       @error_message = nil
       @api_key = headers['Authorization']
+      # for testing
+      Connection.instance.close if @params['disconnect']
     end
 
     def validate
@@ -42,6 +44,7 @@ module Request
       end
       @response[:processingTimeMs] = '%.03f' % ((Time.now.to_f - @start_time)*1000)
       $logger.debug "\nRequest: /#{@type}/?" + URI.encode(@params.map{|k,v| "#{k}=#{v}"}.join("&")) + "\nResponse: #{@response.to_s}\n\n"
+      Connection.instance.connect if @params['disconnect']
       @response
     end
 
@@ -55,6 +58,8 @@ module Request
     end
 
     def process
+#      camp = CAMP.new
+#      puts camp.check? 'ceeda127-8035-4f24-890e-2e6fbe4eb49b'
       @response = { success: false, message: @error_message } unless (@error_message = validate) == true
       super
     end

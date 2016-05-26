@@ -3,10 +3,12 @@ require 'grape'
 require 'json'
 require 'singleton'
 require 'net/http'
+require 'uri'
 
 require './lib/connection.rb'
 require './lib/entitlements_service.rb'
 require './helpers/request.rb'
+require './helpers/camp.rb'
 
 class Cfg
   include Singleton

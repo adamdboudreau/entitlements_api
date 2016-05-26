@@ -70,5 +70,10 @@
                              }
                            }
                          },
-  "archiveLimitPerRun" : 500
+  "archiveLimitPerRun" : 500,
+  "campAPI" : {
+    "url"     : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2-lab3/nhlEntitlements/",
+    "pemFile" : "/Users/sergiy.skyba/Desktop/pem.pem",
+    "keyFile" : "/Users/sergiy.skyba/Desktop/sskyba.key"
+  }
 }
