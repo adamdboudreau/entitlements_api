@@ -70,6 +70,6 @@
   "campAPI" : {
     "url"     : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2-lab3/nhlEntitlements/",
     "pemFile" : "./certificates/camp.pem",
-    "keyFile" : "./certificates/camp/camp.key"
+    "keyFile" : "./certificates/camp.key"
   }
 }

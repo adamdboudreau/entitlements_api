@@ -32,8 +32,13 @@ module Request
     end
 
     def process
-      tc = ((@httptype==:get) && (@type!=:heartbeat)) ? Connection.instance.getTC(@params) : nil
-      @response[:tc] = tc if tc
+      begin
+        tc = ((@httptype==:get) && (@type!=:heartbeat)) ? Connection.instance.getTC(@params) : nil
+        @response[:tc] = tc if tc
+      rescue Exception => e
+        $logger.error "AbstractRequest EXCEPTION with getTC: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+        @response[:success] = false
+      end
 
       if @params['echo']
         @response[:request] = {}
@@ -68,19 +73,54 @@ module Request
 
 #-----------------------------------------------------------------------------------------------------------
 
+  class Entitlement < AbstractRequest
+
+    def initialize (headers, params, httptype = :get)
+      super :entitlement, headers, params, httptype
+    end
+
+    def validate
+      return @error_message unless (@error_message = super) == true
+      return 'Incorrect source' if (@httptype==:put) && !@params['source']
+      return 'Incorrect product' if (@httptype==:put) && !@params['product']
+      return 'Incorrect trace_id' if (@httptype==:put) && !@params['trace_id']
+      return 'Incorrect tc_version' if (@httptype==:put) && @params['tc_version'] && (@params['tc_version'].to_f.to_s!=@params['tc_version'])
+      true
+    end
+
+    def process
+      if (@error_message = validate) == true # validation ok
+
+        if @httptype==:put
+          begin
+            @response['updated'] = !(@response['created'] = (Connection.instance.putEntitlement(@params)==0))
+          rescue Exception => e
+            $logger.error "Entitlement EXCEPTION with putEntitlement: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+            @response = { success: false, message: 'Unknown error during creating/updating an entitlement' }
+          end
+
+        else
+          @response = { success: false, message: 'Incorrect request type' }
+        end
+      else # validation failed
+        @response = { success: false, message: @error_message }
+      end
+      super
+    end
+
+  end
+
+#-----------------------------------------------------------------------------------------------------------
+
   class Entitlements < AbstractRequest
 
     def initialize (headers, params, httptype = :get)
-      return super :entitlement, headers, params, :put if httptype==:put
       super :entitlements, headers, params, httptype
     end
 
     def validate
       return @error_message unless (@error_message = super) == true
-      return 'Incorrect source' if (@httptype==:put || @httptype==:delete) && !@params['source']
-      return 'Incorrect product' if (@httptype==:put) && !@params['product']
-      return 'Incorrect trace_id' if (@httptype==:put) && !@params['trace_id']
-      return 'Incorrect tc_version' if (@httptype==:put) && @params['tc_version'] && (@params['tc_version'].to_f.to_s!=@params['tc_version'])
+      return 'Incorrect source' if (@httptype==:delete) && !@params['source']
       true
     end
 
@@ -95,16 +135,7 @@ module Request
             @response = { success: false, message: 'Unknown error during deleting' }
           end
 
-        elsif @httptype==:put
-
-          begin
-            @response['updated'] = !(@response['created'] = (Connection.instance.putEntitlement(@params)==0))
-          rescue Exception => e
-            $logger.error "Entitlements EXCEPTION with putEntitlement: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
-            @response = { success: false, message: 'Unknown error during creating/updating an entitlement' }
-          end
-
-        else # GET request
+        elsif @httptype==:get
 
           begin
             @response['entitlements'] = Connection.instance.getEntitlements(@params)
@@ -114,6 +145,8 @@ module Request
             @response = { success: false, entitled: true, entitlements: [] }
           end
 
+        else
+          @response = { success: false, message: 'Incorrect request type' }
         end
       else # validation failed
         @response = { success: false, message: @error_message }
@@ -165,8 +198,10 @@ module Request
         if @httptype == :post
           @response['processed'] = Connection.instance.postArchive
           @response = { success: false, message: 'Unknown error' } if @response['processed'] < 0
-        else
+        elsif @httptype == :get
           @response['entitlements'] = Connection.instance.getArchive(@params, 'start_date')
+        else
+          @response = { success: false, message: 'Incorrect request type' }
         end
       else
         @response = { success: false, message: @error_message }

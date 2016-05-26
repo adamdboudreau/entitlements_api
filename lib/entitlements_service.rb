@@ -13,7 +13,7 @@ module EntitlementsService
 
     resource :entitlement do
       put do
-        Request::Entitlements.new(headers, params, :put).process
+        Request::Entitlement.new(headers, params, :put).process
       end
     end
 
