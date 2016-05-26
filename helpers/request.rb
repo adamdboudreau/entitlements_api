@@ -25,6 +25,7 @@ module Request
       return true if (@httptype==:put) && (@type==:archive)
       return 'Incorrect brand' unless Cfg.config['brands'].include? @params['brand']
       return 'Incorrect guid' unless @params['guid']
+      return 'Incorrect search_date' if @params['search_date'] && (@params['search_date'].to_i.to_s != @params['search_date'])
       return 'Incorrect start_date' if @params['start_date'] && (@params['start_date'].to_i.to_s != @params['start_date'])
       return 'Incorrect end_date' if @params['end_date'] && (@params['end_date'].to_i.to_s != @params['end_date'])
       true
@@ -67,48 +68,6 @@ module Request
 
 #-----------------------------------------------------------------------------------------------------------
 
-  class Entitled < AbstractRequest
-
-    def initialize (headers, params, httptype = :get)
-      super :entitled, headers, params, httptype
-    end
-
-    def validate
-      $logger.debug "\nEntitled.validate started\n"
-      return @error_message unless (@error_message = super) == true
-      return 'Incorrect source' unless @params['source']
-      return 'Incorrect product' unless @params['product']
-      return 'Incorrect trace_id' unless @params['trace_id']
-      return 'Incorrect search_date' if (@httptype==:get) && @params['search_date'] && (@params['search_date'].to_i.to_s!=@params['search_date'])
-      return 'Incorrect start_date' if (@httptype==:put) && @params['start_date'] && (@params['start_date'].to_i.to_s!=@params['start_date'])
-      return 'Incorrect end_date' if (@httptype==:put) && @params['end_date'] && (@params['end_date'].to_i.to_s!=@params['end_date'])
-      return 'Incorrect tc_version' if (@httptype==:put) && @params['tc_version'] && (@params['tc_version'].to_f.to_s!=@params['tc_version'])
-      $logger.debug "\nEntitled.validate finished ok\n"
-      true
-    end
-
-    def process
-      $logger.debug "\nEntitled.process started\n"
-      if (@error_message = validate) == true # validation ok
-        if @httptype==:put
-          nDeleted = Connection.instance.putEntitled(@params)
-          @response['updated'] = !(@response['created'] = (nDeleted==0))
-          @response = { success: false, message: 'Unknown error' } if nDeleted<0 
-        else
-          entitled = Connection.instance.getEntitled(@params)
-          @response = { success: entitled[:success], entitled: entitled[:entitled] }
-          @response['start_date'] = entitled[:start_date] if entitled[:start_date]
-          @response['end_date'] = entitled[:end_date] if entitled[:end_date]
-        end
-      else # validation failed
-        @response = { success: false, message: @error_message }
-      end
-      super
-    end
-  end
-
-#-----------------------------------------------------------------------------------------------------------
-
   class Entitlements < AbstractRequest
 
     def initialize (headers, params, httptype = :get)
@@ -117,17 +76,43 @@ module Request
 
     def validate
       return @error_message unless (@error_message = super) == true
-      return 'Incorrect source' if (@httptype==:delete) && !@params['source']
+      return 'Incorrect source' if (@httptype==:put || @httptype==:delete) && !@params['source']
+      return 'Incorrect product' if (@httptype==:put) && !@params['product']
+      return 'Incorrect trace_id' if (@httptype==:put) && !@params['trace_id']
+      return 'Incorrect tc_version' if (@httptype==:put) && @params['tc_version'] && (@params['tc_version'].to_f.to_s!=@params['tc_version'])
       true
     end
 
     def process
       if (@error_message = validate) == true # validation ok
+
         if @httptype==:delete
-          @response['deleted'] = Connection.instance.deleteEntitlements(@params)
-          @response = { success: false, message: 'Unknown error during deleting' } if @response['deleted']<0
-        else
-          @response['entitlements'] = Connection.instance.getEntitlements(@params)
+          begin
+            @response['deleted'] = Connection.instance.deleteEntitlements(@params)
+          rescue Exception => e
+            $logger.error "Entitlements EXCEPTION with deleteEntitlements: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+            @response = { success: false, message: 'Unknown error during deleting' }
+          end
+
+        elsif @httptype==:put
+
+          begin
+            @response['updated'] = !(@response['created'] = (Connection.instance.putEntitlement(@params)==0))
+          rescue Exception => e
+            $logger.error "Entitlements EXCEPTION with putEntitlement: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+            @response = { success: false, message: 'Unknown error during creating/updating an entitlement' }
+          end
+
+        else # GET request
+
+          begin
+            @response['entitlements'] = Connection.instance.getEntitlements(@params, this)
+            @response['entitled'] = @response['entitlements'].empty?
+          rescue Exception => e
+            $logger.error "Entitlements EXCEPTION with getEntitlements: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+            @response = { success: false, entitled: true, entitlements: [] }
+          end
+
         end
       else # validation failed
         @response = { success: false, message: @error_message }
@@ -180,7 +165,7 @@ module Request
           @response['processed'] = Connection.instance.postArchive
           @response = { success: false, message: 'Unknown error' } if @response['processed'] < 0
         else
-          @response['entitlements'] = Connection.instance.getArchive(@params)
+          @response['entitlements'] = Connection.instance.getArchive(@params, 'start_date')
         end
       else
         @response = { success: false, message: @error_message }

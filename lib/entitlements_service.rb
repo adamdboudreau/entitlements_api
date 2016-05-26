@@ -11,21 +11,15 @@ module EntitlementsService
       end
     end
 
-    resource :entitled do
-      get do
-        Request::Entitled.new(headers, params).process
-      end
+    resource :entitlement do
       put do
-        Request::Entitled.new(headers, params, :put).process
+        Request::Entitlements.new(headers, params, :put).process
       end
     end
 
     resource :entitlements do
       get do
         Request::Entitlements.new(headers, params).process
-      end
-      put do
-        Request::Entitlements.new(headers, params, :put).process
       end
       delete do
         Request::Entitlements.new(headers, params, :delete).process

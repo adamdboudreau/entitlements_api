@@ -1,7 +1,7 @@
 FROM ruby:2.1
 
 ENV \
-    RAKE_ENV=dev \
+    RAKE_ENV=int \
     PUMA_WORKERS=1 \
     PUMA_MIN_THREADS=4 \
     PUMA_MAX_THREADS=16
