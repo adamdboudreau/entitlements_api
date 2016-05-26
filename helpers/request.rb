@@ -71,6 +71,7 @@ module Request
   class Entitlements < AbstractRequest
 
     def initialize (headers, params, httptype = :get)
+      return super :entitlement, headers, params, :put if httptype==:put
       super :entitlements, headers, params, httptype
     end
 

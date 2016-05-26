@@ -93,16 +93,12 @@ class Connection
     $logger.debug "\nConnection.getTC started with params: #{params}\n"
     result = nil
     if params['guid'] && (Cfg.config['brands'].include? params['brand'])
-      begin
-        cql = "SELECT tc_version, toUnixTimestamp(tc_acceptance_date) AS tc_acceptance_date FROM #{@table_tc} WHERE guid=? AND brand=? LIMIT 1"
-        args = [params['guid'], params['brand']]
-        $logger.debug "\nConnection.getTC, running CQL=#{cql} with args=#{args}\n"
-        @connection.execute(cql, arguments: args).each do |row|
-          result = { version: row['tc_version'], acceptance_date: row['tc_acceptance_date'].to_i/1000 }
-        end 
-      rescue Exception => e
-        $logger.error "Connection.getTC EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
-      end  
+      cql = "SELECT tc_version, toUnixTimestamp(tc_acceptance_date) AS tc_acceptance_date FROM #{@table_tc} WHERE guid=? AND brand=? LIMIT 1"
+      args = [params['guid'], params['brand']]
+      $logger.debug "\nConnection.getTC, running CQL=#{cql} with args=#{args}\n"
+      @connection.execute(cql, arguments: args).each do |row|
+        result = { version: row['tc_version'], acceptance_date: row['tc_acceptance_date'].to_i/1000 }
+      end 
     end
     result  
   end
