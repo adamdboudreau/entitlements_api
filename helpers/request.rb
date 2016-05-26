@@ -106,8 +106,8 @@ module Request
         else # GET request
 
           begin
-            @response['entitlements'] = Connection.instance.getEntitlements(@params, this)
-            @response['entitled'] = @response['entitlements'].empty?
+            @response['entitlements'] = Connection.instance.getEntitlements(@params)
+            @response['entitled'] = !@response['entitlements'].empty?
           rescue Exception => e
             $logger.error "Entitlements EXCEPTION with getEntitlements: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
             @response = { success: false, entitled: true, entitlements: [] }
