@@ -1,6 +1,6 @@
 class CAMP
 
-  def check?(guid)
+  def check?(guid = '')
 
     uri = URI.parse(Cfg.config['campAPI']['url'] + guid)
     pem = File.read(Cfg.config['campAPI']['pemFile'])

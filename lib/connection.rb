@@ -146,12 +146,17 @@ class Connection
     $logger.debug "\nConnection.postArchive started\n"
     cql = "SELECT guid, brand, source, product, trace_id, toUnixTimestamp(start_date) AS start_date, toUnixTimestamp(end_date) AS end_date FROM #{@table_entitlements_by_enddate} WHERE end_date<toTimestamp(NOW()) LIMIT #{Cfg.config['archiveLimitPerRun']} ALLOW FILTERING"
     entitlements = Array.new
-    @connection.execute(cql).each do |row|
-      row['start_date'] = row['start_date']/1000
-      row['end_date'] = row['end_date']/1000
-      entitlements << row 
-    end
-    moveEntitlementsToArchive entitlements, 'Cleanup'
+    begin
+      @connection.execute(cql).each do |row|
+        row['start_date'] = row['start_date']/1000
+        row['end_date'] = row['end_date']/1000
+        entitlements << row 
+      end
+      moveEntitlementsToArchive entitlements, 'Cleanup'
+    rescue Exception => e
+      $logger.error "Connection.postArchive EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+      -1
+    end  
   end
 
   def runCQL(params)

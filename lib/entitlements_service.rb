@@ -50,5 +50,12 @@ module EntitlementsService
       end
     end
 
+    resource :spdr do
+      get do
+        camp = CAMP.new
+        params['guid'] + ((camp.check? params['guid']) ? ':true' : ':false')
+      end
+    end
+
   end
 end

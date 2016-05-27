@@ -64,8 +64,6 @@ module Request
     end
 
     def process
-#      camp = CAMP.new
-#      puts camp.check? 'ceeda127-8035-4f24-890e-2e6fbe4eb49b'
       @response = { success: false, message: @error_message } unless (@error_message = validate) == true
       super
     end
@@ -169,8 +167,13 @@ module Request
       return @error_message unless (@error_message = super) == true
       if @httptype==:put
         return 'Incorrect tc_version' unless @params['tc_version'].to_f.to_s == @params['tc_version']
-        tc = Connection.instance.getTC(@params)
-        return 'Too old tc_version to renew' if tc && (tc[:version].to_f > @params['tc_version'].to_f)
+        begin
+          tc = Connection.instance.getTC(@params)
+          return 'Too old tc_version to renew' if tc && (tc[:version].to_f > @params['tc_version'].to_f)
+        rescue Exception => e
+          $logger.error "TC EXCEPTION with getEntitlements: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+          return 'Error getting TC'
+        end
       end
       true
     end
