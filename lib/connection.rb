@@ -26,11 +26,12 @@ class Connection
     initialize
   end
 
-  def putEntitlement (params) # return a number of deleted records, or raises an exception on error
+  def putEntitlement (params, delete_existing = true) # return a number of deleted records, or raises an exception on error
     $logger.debug "\nConnection.putEntitlement started with params: #{params}\n"
 
-    result = self.deleteEntitlements(params, 'Updated')
-    start_date = params['start_date'] ? Time.at(params['start_date']) : Time.now
+    result = delete_existing ? self.deleteEntitlements(params, 'Updated') : 0
+    $logger.debug "\nConnection.putEntitled, params['start_date']=#{params['start_date']}\n"
+    start_date = params['start_date'] ? Time.at(params['start_date'].to_i) : Time.now
     end_date = params['end_date'] ? Time.at(params['end_date'].to_i) : Time.utc(2222, 1, 1)
     cql = "UPDATE #{@table_entitlements} SET start_date=? WHERE end_date=? AND guid=? AND brand=? AND product=? AND source=? AND trace_id=?"
     args = [start_date, end_date, params['guid'], params['brand'], params['product'], params['source'], params['trace_id']]
@@ -41,8 +42,8 @@ class Connection
     result
   end
 
-  def getEntitlements(params, exclude_future_entitlements = true)
-    $logger.debug "\nConnection.getEntitlements started with params: #{params}, exclude_future_entitlements=#{exclude_future_entitlements}\n"
+  def getEntitlements(params, exclude_future_entitlements = true, check_spdr = true)
+    $logger.debug "\nConnection.getEntitlements started with params: #{params}, exclude_future_entitlements=#{exclude_future_entitlements}, check_spdr=#{check_spdr}\n"
     result = Array.new
     products = params['products'] ? params['products'].split(',') : (params['product'] ? [params['product']] : nil)
     search_date = (params['search_date'] ? Time.at(params['search_date']) : Time.now).to_i*1000
@@ -59,6 +60,24 @@ class Connection
         result << row 
       end
     end
+
+    # ping SPDR if no entitlements found
+    if (check_spdr && result.empty? && (CAMP.new.check? params['guid']))
+      paramsToInsert = Hash[
+        'guid'=>params['guid'], 
+        'brand'=>params['brand'], 
+        'product'=>'gcl', 
+        'source'=>'spdr', 
+        'trace_id'=>'spdr',
+        'start_date'=>Time.now.to_i.to_s,
+        'end_date'=>(Time.now + 60*60*24).to_i.to_s
+      ]
+      $logger.debug "\nConnection.getEntitlements, found entitlement at SPDR, inserting entitlement to Cassandra: #{paramsToInsert}\n"
+      putEntitlement paramsToInsert, false
+      $logger.debug "\nConnection.getEntitlements, found entitlement at SPDR, entitlement inserted to Cassandra: #{paramsToInsert}\n"
+      return Connection.instance.getEntitlements(params, exclude_future_entitlements, false)
+    end
+
     $logger.debug "\nConnection.getEntitlements, running CQL=#{cql} with args=#{args}, returning #{result.length} row(s)\n"
     result  
   end

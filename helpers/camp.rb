@@ -1,6 +1,7 @@
 class CAMP
 
-  def check?(guid = '')
+  def check?(guid)
+    $logger.debug "\nCAMP.check started with guid=#{guid}\n"
 
     uri = URI.parse(Cfg.config['campAPI']['url'] + guid)
     pem = File.read(Cfg.config['campAPI']['pemFile'])
