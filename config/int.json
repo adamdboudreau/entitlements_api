@@ -2,7 +2,8 @@
   "logFile"           : "./logs/entitlements.log",
   "adminEmail"        : "sskyba@gmail.com",
   "cassandraCluster"  : {
-                          "hosts"             : [ "172.31.49.96" ],
+                          "hostsaws"             : [ "172.31.49.96" ],
+                          "hosts"             : [ "54.209.156.173" ],
                           "port"              : 9042,
                           "username"          : "",
                           "password"          : "",

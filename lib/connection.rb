@@ -3,10 +3,10 @@ class Connection
   attr_reader :connection, :table_entitlements, :table_tc, :table_history
 
   def initialize
-    @table_entitlements = Cfg.config['cassandraCluster']['keyspace'] + '.' + Cfg.config['tables']['entitlements']
-    @table_entitlements_by_enddate = Cfg.config['cassandraCluster']['keyspace'] + '.' + Cfg.config['tables']['entitlements_by_enddate']
-    @table_tc = Cfg.config['cassandraCluster']['keyspace'] + '.' + Cfg.config['tables']['tc']
-    @table_history = Cfg.config['cassandraCluster']['keyspace'] + '.' + Cfg.config['tables']['history_entitlements']
+    @table_entitlements = "#{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements']}"
+    @table_entitlements_by_enddate = "#{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements_by_enddate']}"
+    @table_tc = "#{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['tc']}"
+    @table_history = "#{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['history_entitlements']}"
 
     cluster = { hosts: Cfg.config['cassandraCluster']['hosts'], port: Cfg.config['cassandraCluster']['port'] }
     cluster[:username] = Cfg.config['cassandraCluster']['username'] unless Cfg.config['cassandraCluster']['username'].empty?
