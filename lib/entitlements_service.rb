@@ -52,7 +52,7 @@ module EntitlementsService
 
     resource :spdr do
       get do
-        params['guid'] + ((CAMP.new.check? params['guid']) ? ':true' : ':false')
+        {params['guid']=> ((CAMP.new.check? params['guid']) ? true : false)}
       end
     end
 

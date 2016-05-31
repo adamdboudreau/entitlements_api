@@ -29,6 +29,11 @@ One or more environments can be setup through config files which are /config/[en
 Every time you run the application specifying an existing environment.
 
 
+### API keys
+All requests require API key provided as Authorization: \<apiKey\> parameter in http header.
+API keys can be created in config/[env].json file. Every key includes description, expiry date and list of permitted requests.
+
+
 ### Setup:
 - rake delete create migrate RAKE_ENV=[env]
 

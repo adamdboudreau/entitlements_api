@@ -5,13 +5,15 @@ module Request
   class AbstractRequest
 
     def initialize (type, headers, params = {}, httptype = :get)
+      @api_key = headers['Authorization']
+      $logger.info "\nAbstractRequest.initialize started with\ntype=#{type}\nparams=#{params.to_json}\nhttptype=#{httptype}"
+      $logger.info "\nAbstractRequest.initialize started with API key=#{headers['Authorization']}\nAPI key description: " + ((Cfg.config['apiKeys'][@api_key] && Cfg.config['apiKeys'][@api_key]['description']) ? Cfg.config['apiKeys'][@api_key]['description'] : '')
       @start_time = Time.now.to_f
       @type = type
       @params = params
       @httptype = httptype
       @response = { success: true }
       @error_message = nil
-      @api_key = headers['Authorization']
       # for testing
       Connection.instance.close if @params['disconnect']
     end
