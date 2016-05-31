@@ -1,12 +1,12 @@
 
-# Entitlements API service
+## Entitlements API service
 
 
-## Description
+### Description
 This REST service provides an interface to Cassandra database to get/set entitlements for Rogers GameCenterLive products.
 
 
-## API requests
+### API requests
 - GET /v1/entitlements - Gets a list of entitlements for a user/brand/product
 - DELETE /v1/entitlements - Cancels the entitlement(s) for a certain guid/brand/product/type
 - PUT /v1/entitlement - Creates or updates entitlement
@@ -17,30 +17,31 @@ This REST service provides an interface to Cassandra database to get/set entitle
 - GET /v1/heartbeat - Pings the service to make sure it's up and running
 
 
-## Installation:
+### Installation:
 - cassandra db 3.x
 - ruby 2.1.x
 - gem install bundler
 - bundle install
 
 
-## Config files
-One or more environments can be setup through config files which are /config/<env>.json.
+### Config files
+One or more environments can be setup through config files which are /config/[env].json.
 Every time you run the application specifying an existing environment.
 
 
-## Setup:
+### Setup:
 - rake delete create migrate RAKE_ENV=[env]
 
 
-## Run:
+### Run:
 - rackup -E [env]
+
 where [env] is one of available environment files (/config/[env].json).
 
 By default the service is accessible on port 9292.
 
 Request [host]:[port]/v1/heartbeat to check if it's up and running.
 
-## More info
+### More info
 
 More detailed documentation can be found at [Rogers Confluence page](https://rogers.atlassian.net/wiki/display/ARC/DTC+Entitlement+Service+API+specification).
