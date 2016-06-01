@@ -1,5 +1,6 @@
 {
   "logFile"           : "./logs/entitlements.log",
+  "logEntriesToken"   : "a20c4669-a5d5-47aa-8269-2753c8863e24",
   "adminEmail"        : "sskyba@gmail.com",
   "cassandraCluster"  : {
                           "hosts"             : [ "127.0.0.1" ],

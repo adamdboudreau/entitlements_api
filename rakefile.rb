@@ -2,7 +2,7 @@ require './config/config.rb'
 require './lib/migration.rb'
 
 #$logger = Logger.new(Cfg.config['logFile'], 'daily')
-$logger = Le.new('entitlements', :local => Cfg.config['logFile'])
+$logger = Le.new(Cfg.config['logEntriesToken'], :local => Cfg.config['logFile'])
 
 desc 'create db'
 
