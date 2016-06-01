@@ -55,7 +55,7 @@ module EntitlementsService
         {params['guid']=> ((CAMP.new.check? params['guid']) ? true : false)}
       end
     end
-
+=begin
     resource :test do
       get do
             message = <<MESSAGE_END
@@ -73,6 +73,7 @@ end
 
       end
     end
+=end
 
   end
 end
