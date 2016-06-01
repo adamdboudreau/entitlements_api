@@ -56,5 +56,23 @@ module EntitlementsService
       end
     end
 
+    resource :test do
+      get do
+            message = <<MESSAGE_END
+From: Private Person <me@fromdomain.com>
+To: A Test User <sskyba@gmail.com>
+Subject: SMTP e-mail test
+
+This is a test e-mail message.
+MESSAGE_END
+
+Net::SMTP.start('localhost') do |smtp|
+  smtp.send_message message, 'me@fromdomain.com', 
+                             'sskyba@gmail.com'
+end
+
+      end
+    end
+
   end
 end
