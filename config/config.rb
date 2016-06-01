@@ -2,6 +2,7 @@ require 'cassandra'
 require 'grape'
 require 'json'
 require 'singleton'
+require 'net/smtp'
 require 'net/http'
 require 'uri'
 
