@@ -1,6 +1,6 @@
 {
   "logFile"            : "./logs/entitlements.log",
-  "logEntriesToken"    : "92d8cfbb-9946-4615-8ed3-74852d91a657",
+  "logEntriesToken"    : "6064d574-6e9a-4a14-8978-b48ea3d2105e",
   "newRelicLicenceKey" : "30eeeab22dcbfa840dbec96003589237aab0404b",
   "adminEmail"         : "sskyba@gmail.com",
   "cassandraCluster"   : {

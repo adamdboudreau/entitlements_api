@@ -1,6 +1,5 @@
 require './config/config.rb'
 
-#$logger = Logger.new(Cfg.config['logFile'], 'daily')
-$logger = Le.new(Cfg.config['logEntriesToken'], :local => Cfg.config['logFile'])
+$logger = (Cfg.config[:env]=='dev') ? Logger.new(Cfg.config['logFile'], 'daily') : Le.new(Cfg.config['logEntriesToken'])
 
 run EntitlementsService::API

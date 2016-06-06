@@ -1,12 +1,14 @@
 {
-  "logFile"           : "./logs/entitlements.log",
-  "logEntriesToken"   : "a20c4669-a5d5-47aa-8269-2753c8863e24",
-  "adminEmail"        : "sskyba@gmail.com",
-  "cassandraCluster"  : {
+  "logFile"            : "./logs/entitlements.log",
+  "logEntriesToken"    : "a20c4669-a5d5-47aa-8269-2753c8863e24",
+  "newRelicLicenceKey" : "30eeeab22dcbfa840dbec96003589237aab0404b",
+  "adminEmail"         : "sskyba@gmail.com",
+  "cassandraCluster"   : {
                           "hosts"             : [ "127.0.0.1" ],
+                          "hosts1"             : [ "52.203.239.113", "52.203.240.67", "52.203.240.210" ],
                           "port"              : 9042,
-                          "username"          : "",
-                          "password"          : "",
+                          "username"          : "iccassandra",
+                          "password"          : "baa7ba5fdc9e41c6798ab6b852004179",
                           "keyspace"          : "entitlements_dev"
   },
   "tables"             : {
@@ -40,9 +42,9 @@
                          },
   "archiveLimitPerRun" : 500,
   "campAPI" : {
-    "url"     : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2-lab3/nhlEntitlements/",
-    "pemFile" : "./certificates/camp.pem",
-    "keyFile" : "./certificates/camp.key"
-  },
-  "newRelicLicenceKey" : "30eeeab22dcbfa840dbec96003589237aab0404b"
+    "url"                        : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2-lab3/nhlEntitlements/",
+    "pemFile"                    : "./certificates/camp.pem",
+    "keyFile"                    : "./certificates/camp.key",
+    "defaultSpdrProvisioningHrs" : 24
+  }
 }

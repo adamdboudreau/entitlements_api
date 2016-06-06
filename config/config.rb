@@ -23,6 +23,7 @@ class Cfg
   if ENV['RAKE_ENV'] # create/migrate rake task
     if environments.include? ENV['RAKE_ENV']
       @config = JSON.parse(File.read("./config/#{ENV['RAKE_ENV']}.json"))
+      @config[:env] = ENV['RAKE_ENV']
     else 
       puts "Error: no such environment found: #{ENV['RAKE_ENV']}"
       puts 'Available options to use:'
@@ -34,6 +35,8 @@ class Cfg
   else
     if environments.include? ENV['RACK_ENV']
       @config = JSON.parse(File.read("./config/#{ENV['RACK_ENV']}.json"))
+      @config[:env] = ENV['RACK_ENV']
+      @config['campAPI']['defaultSpdrProvisioningHrs'] = ENV['hrsSPDR'].to_i if ENV['hrsSPDR']
     else
       puts "Error: no such environment found: #{ENV['RACK_ENV']}"
       puts 'Available options to use:'

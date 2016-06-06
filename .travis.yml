@@ -29,7 +29,7 @@ services:
   - docker
 
 env:
-  RACK_ENV: dev
+  RACK_ENV: int
 
 before_install:
   - sudo pip install awscli

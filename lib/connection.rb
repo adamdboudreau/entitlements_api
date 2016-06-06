@@ -70,7 +70,7 @@ class Connection
         'source'=>'spdr', 
         'trace_id'=>params['guid'],
         'start_date'=>Time.now.to_i.to_s,
-        'end_date'=>(Time.now + 60*60*24).to_i.to_s
+        'end_date'=>(Time.now + 60*60*Cfg.config['campAPI']['defaultSpdrProvisioningHrs']).to_i.to_s
       ]
       $logger.debug "\nConnection.getEntitlements, found entitlement at SPDR, inserting entitlement to Cassandra: #{paramsToInsert}\n"
       putEntitlement paramsToInsert, false
