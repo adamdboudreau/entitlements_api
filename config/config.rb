@@ -36,7 +36,7 @@ class Cfg
     if environments.include? ENV['RACK_ENV']
       @config = JSON.parse(File.read("./config/#{ENV['RACK_ENV']}.json"))
       @config[:env] = ENV['RACK_ENV']
-      @config['campAPI']['defaultSpdrProvisioningHrs'] = ENV['hrsSPDR'].to_i if ENV['hrsSPDR']
+      @config['campAPI']['defaultSpdrProvisioningMins'] = ENV['minsSPDR'].to_i if ENV['minsSPDR']
     else
       puts "Error: no such environment found: #{ENV['RACK_ENV']}"
       puts 'Available options to use:'
