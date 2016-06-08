@@ -26,19 +26,22 @@ class Connection
     initialize
   end
 
-  def putEntitlement (params, delete_existing = true) # return a number of deleted records, or raises an exception on error
-    $logger.debug "\nConnection.putEntitlement started with params: #{params}\n"
+  def putEntitlement (params_array, delete_existing = true) # return a number of deleted records, or raises an exception on error
+    $logger.debug "\nConnection.putEntitlement started with params_array: #{params_array}\n"
+    result = 0
 
-    result = delete_existing ? self.deleteEntitlements(params, 'Updated') : 0
-    $logger.debug "\nConnection.putEntitled, params['start_date']=#{params['start_date']}\n"
-    start_date = params['start_date'] ? Time.at(params['start_date'].to_i) : Time.now
-    end_date = params['end_date'] ? Time.at(params['end_date'].to_i) : Time.utc(2222, 1, 1)
-    cql = "UPDATE #{@table_entitlements} SET start_date=? WHERE end_date=? AND guid=? AND brand=? AND product=? AND source=? AND trace_id=?"
-    args = [start_date, end_date, params['guid'], params['brand'], params['product'], params['source'], params['trace_id']]
-    $logger.debug "\nConnection.putEntitled, running CQL=#{cql} with args=#{args}\n"
-    statement = @connection.prepare(cql)
-    @connection.execute(statement, arguments: args)
-    putTC(params) if Request::TC.new(params, :put).validate==true
+    params_array.each do |params|
+      $logger.debug "\nConnection.putEntitled, iteration started, params['start_date']=#{params['start_date']}\n"
+      result = delete_existing ? self.deleteEntitlements(params, 'Updated') : 0
+      start_date = params['start_date'] ? Time.at(params['start_date'].to_i) : Time.now
+      end_date = params['end_date'] ? Time.at(params['end_date'].to_i) : Time.utc(2222, 1, 1)
+      cql = "UPDATE #{@table_entitlements} SET start_date=? WHERE end_date=? AND guid=? AND brand=? AND product=? AND source=? AND trace_id=?"
+      args = [start_date, end_date, params['guid'], params['brand'], params['product'], params['source'], params['trace_id']]
+      $logger.debug "\nConnection.putEntitled, running CQL=#{cql} with args=#{args}\n"
+      statement = @connection.prepare(cql)
+      @connection.execute(statement, arguments: args)
+      putTC(params) if Request::TC.new(nil, params, :put, true).validate==true
+    end
     result
   end
 
@@ -61,19 +64,9 @@ class Connection
       end
     end
 
-    # ping SPDR if no entitlements found
-    if (check_spdr && result.empty? && (CAMP.new.check? params['guid']))
-      paramsToInsert = Hash[
-        'guid'=>params['guid'], 
-        'brand'=>params['brand'], 
-        'product'=>'gcl', 
-        'source'=>'spdr', 
-        'trace_id'=>params['guid'],
-        'start_date'=>Time.now.to_i.to_s,
-        'end_date'=>(Time.now + 60*Cfg.config['campAPI']['defaultSpdrProvisioningMins']).to_i.to_s
-      ]
-      $logger.debug "\nConnection.getEntitlements, found entitlement at SPDR, inserting entitlement to Cassandra: #{paramsToInsert}\n"
-      putEntitlement paramsToInsert, false
+    if (check_spdr && result.empty?) # ping SPDR if no entitlements found
+      $logger.debug 'Connection.getEntitlements, checking entitlements at SPDR to insert them to Cassandra'
+      putEntitlement CAMP.new.getEntitlementParamsToInsert(params['guid']), false
       return Connection.instance.getEntitlements(params, exclude_future_entitlements, false)
     end
 

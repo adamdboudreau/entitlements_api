@@ -111,6 +111,26 @@
     "url"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2-lab3/nhlEntitlements/",
     "pemFile"                     : "./certificates/camp.pem",
     "keyFile"                     : "./certificates/camp.key",
-    "defaultSpdrProvisioningMins" : 1440
+    "defaultSpdrProvisioningMins" : 1440,
+    "defaultSpdrErrorProvisioningMins" : 60,
+    "defaultSpdrNoProvisioningMins" : 0,
+    "rules" : {
+      "SPDRNHL/Status/code=200" : { "entitled":true, "provisionTime":"defaultSpdrProvisioningMins", "source":"spdr", "redo":0 },
+      "SPDRNHL/Status/code=404" : { "entitled":false, "provisionTime":"defaultSpdrNoProvisioningMins", "source":"spdr_error", "redo":0 },
+      "CAMP/Status/code=400" : { "entitled":false, "provisionTime":"defaultSpdrNoProvisioningMins", "source":"spdr_error", "redo":0 },
+      "CAMP/Status/code=503" : { "entitled":true, "provisionTime":"defaultSpdrErrorProvisioningMins", "source":"spdr_error", "redo":2 }
+    },
+    "ruleDefault" : { "entitled":true, "provisionTime":"defaultSpdrErrorProvisioningMins", "source":"spdr_error", "redo":2 },
+    "entitlementPath" : "SPDRNHL/response/NHLType",
+    "entitlementsMap" : {
+      "free"       : ["gcl", "gameplus", "wch"],
+      "free+sn"    : ["gcl", "gameplus", "wch"],
+      "ordered"    : ["gcl", "gameplus", "wch"],
+      "ordered+sn" : ["gcl", "gameplus", "wch"],
+      "coupon"     : ["gcl", "gameplus", "wch"],
+      "coupon+sn"  : ["gcl", "gameplus", "wch"],
+      "noncore"    : ["gcl", "wch"],
+      "default"    : ["gcl"]
+    }
   }
 }

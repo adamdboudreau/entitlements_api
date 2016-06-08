@@ -4,10 +4,11 @@ module Request
 
   class AbstractRequest
 
-    def initialize (type, headers, params = {}, httptype = :get)
-      @api_key = headers['Authorization']
-      $logger.info "\nAbstractRequest.initialize started with\ntype=#{type}\nparams=#{params.to_json}\nhttptype=#{httptype}"
-      $logger.info "\nAbstractRequest.initialize started with API key=#{headers['Authorization']}\nAPI key description: " + ((Cfg.config['apiKeys'][@api_key] && Cfg.config['apiKeys'][@api_key]['description']) ? Cfg.config['apiKeys'][@api_key]['description'] : '')
+    def initialize (type, headers, params = {}, httptype = :get, bypass_api_check = false)
+      @bypass_api_check = bypass_api_check
+      @api_key = headers ? headers['Authorization'] : ''
+      $logger.info "\nAbstractRequest.initialize started with\ntype=#{type}\nparams=#{params.to_json}\nhttptype=#{httptype}\nbypass_api_check=#{bypass_api_check}"
+      $logger.info "\nAbstractRequest.initialize started with API key=#{@api_key}\nAPI key description: " + ((Cfg.config['apiKeys'][@api_key] && Cfg.config['apiKeys'][@api_key]['description']) ? Cfg.config['apiKeys'][@api_key]['description'] : '')
       @start_time = Time.now.to_f
       @type = type
       @params = params
@@ -20,9 +21,11 @@ module Request
 
     def validate
       $logger.debug "\nAbstractRequest.validate started\n"
-      return 'Incorrect API key' unless Cfg.config['apiKeys'][@api_key]
-      return 'Not authorized' unless Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s] && Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s][@type.to_s]
-      return 'API key expired' unless DateTime.parse(Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s][@type.to_s])>DateTime.now
+      unless @bypass_api_check
+        return 'Incorrect API key' unless Cfg.config['apiKeys'][@api_key]
+        return 'Not authorized' unless Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s] && Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s][@type.to_s]
+        return 'API key expired' unless DateTime.parse(Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s][@type.to_s])>DateTime.now
+      end
       return true if (@httptype==:get) && (@type==:heartbeat || @type==:cql)
       return true if (@httptype==:put) && (@type==:archive)
       return 'Incorrect brand' unless Cfg.config['brands'].include? @params['brand']
@@ -93,7 +96,7 @@ module Request
 
         if @httptype==:put
           begin
-            @response['updated'] = !(@response['created'] = (Connection.instance.putEntitlement(@params)==0))
+            @response['updated'] = !(@response['created'] = (Connection.instance.putEntitlement([@params])==0))
           rescue Exception => e
             $logger.error "Entitlement EXCEPTION with putEntitlement: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
             @response = { success: false, message: 'Unknown error during creating/updating an entitlement' }
@@ -160,8 +163,8 @@ module Request
 
   class TC < AbstractRequest
 
-    def initialize (headers, params, httptype = :get)
-      super :tc, headers, params, httptype
+    def initialize (headers, params, httptype = :get, bypass_api_check = false)
+      super :tc, headers, params, httptype, bypass_api_check
     end
 
     def validate
