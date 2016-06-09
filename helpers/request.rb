@@ -27,7 +27,7 @@ module Request
         return 'API key expired' unless DateTime.parse(Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s][@type.to_s])>DateTime.now
       end
       return true if (@httptype==:get) && (@type==:heartbeat || @type==:cql)
-      return true if (@httptype==:put) && (@type==:archive)
+      return true if (@httptype==:post) && (@type==:archive)
       return 'Incorrect brand' unless Cfg.config['brands'].include? @params['brand']
       return 'Incorrect guid' unless @params['guid']
       return 'Incorrect search_date' if @params['search_date'] && (@params['search_date'].to_i.to_s != @params['search_date'])
