@@ -125,12 +125,7 @@
     "entitlementsMap" : {
       "free"       : ["gcl", "gameplus", "wch"],
       "free+sn"    : ["gcl", "gameplus", "wch"],
-      "ordered"    : ["gcl", "gameplus", "wch"],
-      "ordered+sn" : ["gcl", "gameplus", "wch"],
-      "coupon"     : ["gcl", "gameplus", "wch"],
-      "coupon+sn"  : ["gcl", "gameplus", "wch"],
-      "noncore"    : ["gcl", "wch"],
-      "default"    : ["gcl"]
+      "default"    : []
     }
   }
 }

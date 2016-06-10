@@ -5,6 +5,8 @@ module EntitlementsService
     version 'v1', using: :path, vendor: 'dtc_entitlements_service'
     format :json
 
+    "Request not found"
+
     resource :heartbeat do
       get do
         Request::Heartbeat.new(headers, params).process
@@ -50,10 +52,8 @@ module EntitlementsService
       end
     end
 
-    resource :spdr do
-      get do
-        {params['guid']=> ((CAMP.new.check? params['guid']) ? true : false)}
-      end
+    route :any, '*path' do
+      {"success"=>false, "message"=>"Unknown request"}
     end
 
   end
