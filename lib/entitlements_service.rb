@@ -5,8 +5,6 @@ module EntitlementsService
     version 'v1', using: :path, vendor: 'dtc_entitlements_service'
     format :json
 
-    "Request not found"
-
     resource :heartbeat do
       get do
         Request::Heartbeat.new(headers, params).process

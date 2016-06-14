@@ -1,3 +1,5 @@
+require 'csv'
+
 require './config/config.rb'
 require './lib/migration.rb'
 
@@ -57,4 +59,32 @@ task :delete do
 #  @connection.execute("DROP MATERIALIZED VIEW IF EXISTS #{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements_by_enddate']}")
 #  @connection.execute("DROP TABLE IF EXISTS #{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements']}")
   @connection.execute("DROP KEYSPACE IF EXISTS #{Cfg.config['cassandraCluster']['keyspace']}")
+end
+
+desc 'Migrate entitlements from Zuora'
+task :zuora do |task, args|
+  puts 'Zuora migration'
+  csvFile = ENV['ZUORA_CSV']
+  abort "File not found: #{csvFile}" unless File.file?(csvFile)
+  nCounter = 0
+  sLine = '<guid>,gcl,1506729601,zuora,fullgcl,<guid>,1472688001' # guid,brand,end_date,source,product,trace_id,start_date
+  sLine = '<guid>,gcl,2017-09-01 00:00:01+0000,zuora,fullgcl,<guid>,2017-09-30 00:00:01+0000' # guid,brand,end_date,source,product,trace_id,start_date
+  sFileName = "temp_#{Time.now.to_i}.csv"
+
+  File.open(sFileName, "w") do |f|
+    CSV.foreach(csvFile) do |row|
+#      product, guid, start_date = row.to_s.split ','
+      if nCounter>0 then
+        sInsert = sLine.gsub('<guid>',row[1])
+        if (row[0].downcase.include? 'monthly') then
+          f.write sInsert.gsub('2017-09-30 00:00:01','2099-09-30 00:00:01') + "\n"
+        else
+          f.write "#{sInsert}\n"
+          f.write "#{sInsert.gsub('fullgcl','wch')}\n"
+        end
+      end
+      nCounter += 1
+    end
+  end
+  puts "#{nCounter} records imported into #{sFileName}"
 end
