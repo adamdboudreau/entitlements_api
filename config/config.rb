@@ -46,6 +46,10 @@ class Cfg
       end
       exit
     end
+
+    unless ENV['CAMP_KEY']
+      abort 'Error: CAMP_KEY environment variable is not set'
+    end
   end 
 
   def self.config

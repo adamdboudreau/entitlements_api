@@ -5,7 +5,7 @@ class CAMP
 
     uri = URI.parse(Cfg.config['campAPI']['url'] + guid)
     pem = File.read(Cfg.config['campAPI']['pemFile'])
-    key = File.read(Cfg.config['campAPI']['keyFile'])
+    key = ENV['CAMP_KEY']
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
     http.cert = OpenSSL::X509::Certificate.new(pem)

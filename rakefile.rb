@@ -61,6 +61,14 @@ task :delete do
   @connection.execute("DROP KEYSPACE IF EXISTS #{Cfg.config['cassandraCluster']['keyspace']}")
 end
 
+desc 'archive'
+task :archive do
+  puts 'Archiving rake task started'
+  nRecordsArchived = Connection.instance.postArchive
+  puts 'Error happened during archiving' if nRecordsArchived<0
+  puts "Archiving rake task finished successfully, #{nRecordsArchived} records have been archived"
+end
+
 desc 'Migrate entitlements from Zuora'
 task :zuora do |task, args|
   puts 'Zuora migration'
