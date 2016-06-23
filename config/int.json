@@ -109,7 +109,7 @@
   "archiveLimitPerRun" : 500,
   "campAPI" : {
     "url"                         : "https://camp.egslb.net.rogers.com/api/v2/nhlEntitlements/",
-    "pemFile"                     : "./certificates/dtc_csr1.pem",
+    "pemFile"                     : "./certificates/dtc_csr2.pem",
     "defaultSpdrProvisioningMins" : 1440,
     "defaultSpdrErrorProvisioningMins" : 60,
     "defaultSpdrNoProvisioningMins" : 0,
