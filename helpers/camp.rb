@@ -1,9 +1,10 @@
 class CAMP
 
   def check (guid)
-    $logger.debug "\nCAMP.check started with guid=#{guid}\n"
+    $logger.debug "\nCAMP.check started\n"
 
     uri = URI.parse(Cfg.config['campAPI']['url'] + guid)
+    $logger.debug "\nCAMP.check going to ping URL=#{uri}\n"
     pem = File.read(Cfg.config['campAPI']['pemFile'])
     key = ENV['CAMP_KEY']
     http = Net::HTTP.new(uri.host, uri.port)
