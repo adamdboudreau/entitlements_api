@@ -108,9 +108,8 @@
                          },
   "archiveLimitPerRun" : 500,
   "campAPI" : {
-    "url"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2-lab3/nhlEntitlements/",
-    "pemFile"                     : "./certificates/camp.pem",
-    "keyFile"                     : "./certificates/camp.key",
+    "url"                         : "https://camp.egslb.net.rogers.com/api/v2/nhlEntitlements/",
+    "pemFile"                     : "./certificates/dtc_csr.pem",
     "defaultSpdrProvisioningMins" : 1440,
     "defaultSpdrErrorProvisioningMins" : 60,
     "defaultSpdrNoProvisioningMins" : 0,
