@@ -7,6 +7,7 @@ class CAMP
     $logger.debug "\nCAMP.check going to ping URL=#{uri}\n"
     pem = File.read(Cfg.config['campAPI']['pemFile'])
     key = ENV['CAMP_KEY']
+    $logger.debug "\nCAMP.check pem:\n#{pem}\n\npkey:\n#{key}\n"
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
     http.cert = OpenSSL::X509::Certificate.new(pem)
