@@ -3,7 +3,12 @@ class CAMP
   def check (guid)
     $logger.debug "\nCAMP.check started\n"
 
-    $logger.debug "OpenSSL settings: " + OpenSSL::SSL.inspect
+(Net::HTTP::SSL_IVNAMES << :@ssl_options).uniq!
+(Net::HTTP::SSL_ATTRIBUTES << :options).uniq!
+
+Net::HTTP.class_eval do
+  attr_accessor :ssl_options
+end
 
     uri = URI.parse(Cfg.config['campAPI']['url'] + guid)
     $logger.debug "\nCAMP.check going to ping URL=#{uri}\n"
@@ -16,6 +21,8 @@ class CAMP
     http.cert = OpenSSL::X509::Certificate.new(pem)
     http.key = OpenSSL::PKey::RSA.new(key)
     http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+    http.ssl_options = OpenSSL::SSL::OP_NO_SSLv2 + OpenSSL::SSL::OP_NO_SSLv3 + OpenSSL::SSL::OP_NO_COMPRESSION
+    $logger.debug "OpenSSL settings: #{OpenSSL::SSL.constants}"
 
     nAttempt = 0
     response, result = nil
