@@ -3,7 +3,7 @@ class CAMP
   def check (guid)
     $logger.debug "\nCAMP.check started\n"
 
-    $logger.debug "OpenSSL settings: " + OpenSSL.inspect
+    $logger.debug "OpenSSL settings: " + OpenSSL::SSL.inspect
 
     uri = URI.parse(Cfg.config['campAPI']['url'] + guid)
     $logger.debug "\nCAMP.check going to ping URL=#{uri}\n"
