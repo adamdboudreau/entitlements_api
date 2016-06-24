@@ -3,6 +3,8 @@ class CAMP
   def check (guid)
     $logger.debug "\nCAMP.check started\n"
 
+    $logger.debug "Server SSL settings: " + OpenSSL::SSL::SSLContext::DEFAULT_PARAMS.inspect
+
     uri = URI.parse(Cfg.config['campAPI']['url'] + guid)
     $logger.debug "\nCAMP.check going to ping URL=#{uri}\n"
     pem = File.read(Cfg.config['campAPI']['pemFile'])
