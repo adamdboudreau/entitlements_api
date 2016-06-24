@@ -83,8 +83,8 @@ task :zuora do |task, args|
     CSV.foreach(csvFile) do |row|
 #      product, guid, start_date = row.to_s.split ','
       if nCounter>0 then
-        sInsert = sLine.gsub('<guid>',row[1])
-        if (row[0].downcase.include? 'monthly') then
+        sInsert = sLine.gsub('<guid>',row[11])
+        if (row[1].downcase.include? 'monthly') then
           f.write sInsert.gsub('2017-09-30 00:00:01','2099-09-30 00:00:01') + "\n"
         else
           f.write "#{sInsert}\n"

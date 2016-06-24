@@ -47,7 +47,7 @@ class Cfg
       exit
     end
 
-    unless ENV['CAMP_KEY']
+    unless ENV['CAMP_KEY'] || @config[:env] == 'dev'
       abort 'Error: CAMP_KEY environment variable is not set'
     end
   end 
