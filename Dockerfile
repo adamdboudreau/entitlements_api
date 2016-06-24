@@ -1,6 +1,7 @@
 FROM ruby:2.1
 
 ENV \
+    CAMP_KEY_PASSWORD=Pswd1234! \
     RAKE_ENV=int \
     PUMA_WORKERS=1 \
     PUMA_MIN_THREADS=4 \
