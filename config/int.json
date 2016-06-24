@@ -110,6 +110,7 @@
   "campAPI" : {
     "url"                         : "https://camp.egslb.net.rogers.com/api/v2/nhlEntitlements/",
     "pemFile"                     : "./certificates/dtc_csr.pem",
+    "p12File"                     : "./certificates/campprod.p12",
     "defaultSpdrProvisioningMins" : 1440,
     "defaultSpdrErrorProvisioningMins" : 60,
     "defaultSpdrNoProvisioningMins" : 0,
