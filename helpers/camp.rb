@@ -2,29 +2,22 @@ class CAMP
 
   def check (guid)
     $logger.debug "\nCAMP.check started\n"
-
-(Net::HTTP::SSL_IVNAMES << :@ssl_options).uniq!
-(Net::HTTP::SSL_ATTRIBUTES << :options).uniq!
-
-Net::HTTP.class_eval do
-  attr_accessor :ssl_options
-end
-
     uri = URI.parse(Cfg.config['campAPI']['url'] + guid)
     $logger.debug "\nCAMP.check going to ping URL=#{uri}\n"
     pem = File.read(Cfg.config['campAPI']['pemFile'])
     $logger.debug "\nCAMP.check pem size=#{pem.size}\n"
 #    key = ENV['CAMP_KEY']
-    p12 = OpenSSL::PKCS12.new(File.read(Cfg.config['campAPI']['p12File']), ENV['CAMP_KEY_PASSWORD'])
-    $logger.debug "\nCAMP.check p12 object created\n"
-    key = p12.key 
+#    p12 = OpenSSL::PKCS12.new(File.read(Cfg.config['campAPI']['p12File']), ENV['CAMP_KEY_PASSWORD'])
+#    $logger.debug "\nCAMP.check p12 object created\n"
+    key = ENV['CAMP_KEY']
     $logger.debug "\nCAMP.check pkey size=#{key.to_s.size}\n"
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
     http.cert = OpenSSL::X509::Certificate.new(pem)
     http.key = OpenSSL::PKey::RSA.new(key)
-    http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-    http.ssl_options = OpenSSL::SSL::OP_NO_SSLv2 + OpenSSL::SSL::OP_NO_SSLv3 + OpenSSL::SSL::OP_NO_COMPRESSION
+#    http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+#    http.ssl_options = OpenSSL::SSL::OP_NO_SSLv2 + OpenSSL::SSL::OP_NO_SSLv3 + OpenSSL::SSL::OP_NO_COMPRESSION
     $logger.debug "OpenSSL settings: #{OpenSSL::SSL.constants}"
 
     nAttempt = 0

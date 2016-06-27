@@ -20,7 +20,7 @@
   },
   "brands"             : ["gcl", "texture", "shomi"],
   "apiKeys"            : {
-                           "123" : {
+                           "dev123" : {
                              "description": "Sergey Skyba development",
                              "allowed": {
                                "get"    : {
