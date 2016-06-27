@@ -1,6 +1,8 @@
+
 class CAMP
 
   def check (guid)
+#OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
     $logger.debug "\nCAMP.check started\n"
     uri = URI.parse(Cfg.config['campAPI']['url'] + guid)
     $logger.debug "\nCAMP.check going to ping URL=#{uri}\n"
