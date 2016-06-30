@@ -41,7 +41,6 @@ GEM
     minitest (5.8.4)
     multi_json (1.11.2)
     multi_xml (0.5.5)
-    openssl (0.2.0)
     puma (2.11.3)
       rack (>= 1.1, < 2.0)
     rack (1.6.4)
@@ -67,7 +66,6 @@ DEPENDENCIES
   grape
   grape-entity
   le
-  openssl (<= 0.9.8)
   puma
   rake
 

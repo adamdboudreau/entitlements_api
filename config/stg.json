@@ -122,6 +122,17 @@
                                             "cql"          : "2099-12-31 00:00:01"
                                }
                              }
+                           },
+                           "BGkxIyxE" : {
+                             "description": "MLBAM - readonly access",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01"
+                               }
+                             }
                            }
                          },
   "archiveLimitPerRun" : 500,
@@ -140,8 +151,8 @@
     "ruleDefault" : { "entitled":true, "provisionTime":"defaultSpdrErrorProvisioningMins", "source":"spdr_error", "redo":2 },
     "entitlementPath" : "SPDRNHL/response/NHLType",
     "entitlementsMap" : {
-      "free"       : ["gcl", "gameplus", "wch"],
-      "free+sn"    : ["gcl", "gameplus", "wch"],
+      "free"       : ["fullgcl", "gameplus", "wch"],
+      "free+sn"    : ["fullgcl", "gameplus", "wch"],
       "default"    : []
     }
   }

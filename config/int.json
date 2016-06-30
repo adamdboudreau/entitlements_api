@@ -57,8 +57,8 @@
     "ruleDefault" : { "entitled":true, "provisionTime":"defaultSpdrErrorProvisioningMins", "source":"spdr_error", "redo":2 },
     "entitlementPath" : "SPDRNHL/response/NHLType",
     "entitlementsMap" : {
-      "free"       : ["gcl", "gameplus", "wch"],
-      "free+sn"    : ["gcl", "gameplus", "wch"],
+      "free"       : ["fullgcl", "gameplus", "wch"],
+      "free+sn"    : ["fullgcl", "gameplus", "wch"],
       "default"    : []
     }
   }
