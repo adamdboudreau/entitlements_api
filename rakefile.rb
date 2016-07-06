@@ -77,18 +77,25 @@ task :zuora do |task, args|
   nCounter = 0
   sLine = '<guid>,gcl,1506729601,zuora,fullgcl,<guid>,1472688001' # guid,brand,end_date,source,product,trace_id,start_date
   sLine = '<guid>,gcl,2017-09-01 00:00:01+0000,zuora,fullgcl,<guid>,2017-09-30 00:00:01+0000' # guid,brand,end_date,source,product,trace_id,start_date
+  sLine = '<guid>,gcl,2017-10-01 00:00:01+0000,zuora,frenchgcl,<guid>,2017-09-30 00:00:01+0000' # guid,brand,end_date,source,product,trace_id,start_date
   sFileName = "temp_#{Time.now.to_i}.csv"
 
   File.open(sFileName, "w") do |f|
     CSV.foreach(csvFile) do |row|
 #      product, guid, start_date = row.to_s.split ','
       if nCounter>0 then
-        sInsert = sLine.gsub('<guid>',row[11])
-        if (row[1].downcase.include? 'monthly') then
-          f.write sInsert.gsub('2017-09-30 00:00:01','2099-09-30 00:00:01') + "\n"
-        else
-          f.write "#{sInsert}\n"
-          f.write "#{sInsert.gsub('fullgcl','wch')}\n"
+        begin
+          sInsert = sLine.gsub('<guid>',row[11])
+          if (row[1].downcase.include? 'french') then
+            f.write "#{sInsert}\n"
+          elsif (row[1].downcase.include? 'monthly') then
+#            f.write sInsert.gsub('2017-09-30 00:00:01','2099-09-30 00:00:01') + "\n"
+          else
+#            f.write "#{sInsert}\n"
+#            f.write "#{sInsert.gsub('fullgcl','wch')}\n"
+          end
+        rescue 
+          puts "Error happened on line #{nCounter}, skipped"
         end
       end
       nCounter += 1

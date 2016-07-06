@@ -10,9 +10,9 @@ class CAMP
     $logger.debug "\nCAMP.check pkey size=#{key.to_s.size}\n"
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
+    http.ciphers = 'DEFAULT:!DH'
     http.cert = OpenSSL::X509::Certificate.new(pem)
     http.key = OpenSSL::PKey::RSA.new(key)
-#    http.verify_mode = OpenSSL::SSL::VERIFY_PEER
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
 
     nAttempt = 0
