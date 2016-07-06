@@ -21,7 +21,7 @@ class CAMP
     begin
       result = nil
       nAttempt += 1
-      $logger.debug "\nCAMP.check going to connect\n"
+      $logger.debug "\nCAMP.check going to connect to #{uri.request_uri}\n"
       response = Hash.from_xml(http.request(Net::HTTP::Get.new(uri.request_uri)).body)
       $logger.debug "\nCAMP.check pinging SPDR, attempt #{nAttempt}, response=#{response}\n"
 
