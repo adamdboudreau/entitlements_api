@@ -1,7 +1,6 @@
 {
   "logFile"            : "./logs/entitlements.log",
   "logEntriesToken"    : "a20c4669-a5d5-47aa-8269-2753c8863e24",
-  "newRelicLicenceKey" : "30eeeab22dcbfa840dbec96003589237aab0404b",
   "adminEmail"         : "sskyba@gmail.com",
   "cassandraCluster"   : {
                           "hosts"             : [ "127.0.0.1" ],
@@ -44,7 +43,6 @@
   "campAPI" : {
     "url"                         : "https://camp.egslb.net.rogers.com/api/v2/nhlEntitlements/",
     "pemFile"                     : "./certificates/dtc_csr.pem",
-    "p12File"                     : "./certificates/campprod.p12",
     "defaultSpdrProvisioningMins" : 1440,
     "defaultSpdrErrorProvisioningMins" : 60,
     "defaultSpdrNoProvisioningMins" : 0,
