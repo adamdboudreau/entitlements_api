@@ -1,11 +1,8 @@
 class CAMP
 
   def check (guid)
-    uri = URI.parse(Cfg.config['campAPI']['url'] + guid)
+    uri = URI.parse(Cfg.config['campAPI']['url'] + guid.strip)
     pem = File.read(Cfg.config['campAPI']['pemFile'])
-#    key = ENV['CAMP_KEY']
-#    p12 = OpenSSL::PKCS12.new(File.read(Cfg.config['campAPI']['p12File']), ENV['CAMP_KEY_PASSWORD'])
-#    $logger.debug "\nCAMP.check p12 object created\n"
     key = ENV['CAMP_KEY']
     $logger.debug "\nCAMP.check pkey size=#{key.to_s.size}\n"
     http = Net::HTTP.new(uri.host, uri.port)

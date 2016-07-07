@@ -133,7 +133,7 @@ class Connection
     $logger.debug "\nConnection.getArchive started with params: #{params}\n"
     result = Array.new
     begin
-      cql = "SELECT source, product, trace_id, toUnixTimestamp(start_date) AS start_date, toUnixTimestamp(end_date) AS end_date, toUnixTimestamp(archive_date) AS archive_date, archive_type FROM #{@table_history} WHERE guid=? AND brand=?"
+      cql = "SELECT brand, guid, source, product, trace_id, toUnixTimestamp(start_date) AS start_date, toUnixTimestamp(end_date) AS end_date, toUnixTimestamp(archive_date) AS archive_date, archive_type FROM #{@table_history} WHERE guid=? AND brand=?"
       args = [params['guid'], params['brand']]
       @connection.execute(cql, arguments: args).each do |row|
         unless ((params['source'] && row['source']!=params['source']) || 

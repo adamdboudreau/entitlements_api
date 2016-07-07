@@ -65,8 +65,7 @@ desc 'archive'
 task :archive do
   puts 'Archiving rake task started'
   nRecordsArchived = Connection.instance.postArchive
-  puts 'Error happened during archiving' if nRecordsArchived<0
-  puts "Archiving rake task finished successfully, #{nRecordsArchived} records have been archived"
+  puts (nRecordsArchived<0) ? 'Error happened during archiving' : "Archiving rake task finished successfully, #{nRecordsArchived} records have been archived"
 end
 
 desc 'Migrate entitlements from Zuora'
