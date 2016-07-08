@@ -103,13 +103,13 @@ class Connection
   def getTC(params)
     $logger.debug "\nConnection.getTC started with params: #{params}\n"
     result = nil
-    if params['guid'] && (Cfg.config['brands'].include? params['brand'])
-      cql = "SELECT tc_version, toUnixTimestamp(tc_acceptance_date) AS tc_acceptance_date FROM #{@table_tc} WHERE guid=? AND brand=? LIMIT 1"
-      args = [params['guid'], params['brand']]
-      $logger.debug "\nConnection.getTC, running CQL=#{cql} with args=#{args}\n"
-      @connection.execute(cql, arguments: args).each do |row|
-        result = { version: row['tc_version'], acceptance_date: row['tc_acceptance_date'].to_i/1000 }
-      end 
+    return nil unless params['guid'] && (!params['guid'].strip.empty?) && (Cfg.config['brands'].include? params['brand'])
+
+    cql = "SELECT tc_version, toUnixTimestamp(tc_acceptance_date) AS tc_acceptance_date FROM #{@table_tc} WHERE guid=? AND brand=? LIMIT 1"
+    args = [params['guid'], params['brand']]
+    $logger.debug "\nConnection.getTC, running CQL=#{cql} with args=#{args}\n"
+    @connection.execute(cql, arguments: args).each do |row|
+      result = { version: row['tc_version'], acceptance_date: row['tc_acceptance_date'].to_i/1000 }
     end
     result  
   end
