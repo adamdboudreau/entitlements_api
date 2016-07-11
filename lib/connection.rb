@@ -49,7 +49,7 @@ class Connection
     $logger.debug "\nConnection.getEntitlements started with params: #{params}, exclude_future_entitlements=#{exclude_future_entitlements}, check_spdr=#{check_spdr}\n"
     result = Array.new
     products = params['products'] ? params['products'].split(',') : (params['product'] ? [params['product']] : nil)
-    search_date = (params['search_date'] ? Time.at(params['search_date']) : Time.now).to_i*1000
+    search_date = (params['search_date'] ? Time.at(params['search_date'].to_i) : Time.now).to_i*1000
     cql = "SELECT guid, brand, source, product, trace_id, toUnixTimestamp(start_date) AS start_date, toUnixTimestamp(end_date) AS end_date FROM #{@table_entitlements} WHERE guid=? AND brand=? AND end_date>?"
     args = [params['guid'], params['brand'], search_date]
     @connection.execute(cql, arguments: args).each do |row|
