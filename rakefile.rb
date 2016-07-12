@@ -69,6 +69,13 @@ task :archive do
 end
 
 desc 'Migrate entitlements from Zuora'
+task :delete_zuora do |task, args|
+  puts 'Zuora cleanup'
+  nRecordsDeleted = Connection.instance.deleteZuora
+  puts (nRecordsDeleted<0) ? 'Error happened during zuora deleting' : "Delete zuora entitlements task finished successfully, #{nRecordsDeleted} records have been deleted"
+end
+
+desc 'Migrate entitlements from Zuora'
 task :zuora do |task, args|
   puts 'Zuora migration'
   csvFile = ENV['ZUORA_CSV']

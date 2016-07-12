@@ -50,6 +50,7 @@ class Connection
     result = Array.new
     products = params['products'] ? params['products'].split(',') : (params['product'] ? [params['product']] : nil)
     search_date = (params['search_date'] ? Time.at(params['search_date'].to_i) : Time.now).to_i*1000
+    exclude_future_entitlements = exclude_future_entitlements && params.key?('search_date')
     cql = "SELECT guid, brand, source, product, trace_id, toUnixTimestamp(start_date) AS start_date, toUnixTimestamp(end_date) AS end_date FROM #{@table_entitlements} WHERE guid=? AND brand=? AND end_date>?"
     args = [params['guid'], params['brand'], search_date]
     @connection.execute(cql, arguments: args).each do |row|
@@ -182,5 +183,27 @@ class Connection
       $logger.error "Connection.runCQL EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
     end
     result
+  end
+
+  def deleteZuora
+    puts "\nConnection.deleteZuora started\n"
+    cql = "SELECT * FROM #{@table_entitlements}"
+    nDeleted = 0
+    begin
+      rows = @connection.execute(cql)
+      rows.each do |row|
+        if ((row['source'] == 'zuora') && (row['guid'] == row['trace_id']))
+          cql = "DELETE FROM #{@table_entitlements} WHERE guid=? AND brand=? AND product=? AND source='zuora' AND trace_id=?"
+          args = [row['guid'], row['brand'], row['product'], row['trace_id']]
+          puts "\nConnection.deleteZuora, running CQL=#{cql} with args=#{args}\n"
+          @connection.execute(@connection.prepare(cql), arguments: args)
+          nDeleted += 1
+        end
+      end
+      nDeleted
+    rescue Exception => e
+      $logger.error "Connection.postArchive EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+      -1
+    end  
   end
 end
