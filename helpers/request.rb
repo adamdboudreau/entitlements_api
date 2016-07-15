@@ -21,6 +21,15 @@ module Request
 
     def validate
       $logger.debug "\nAbstractRequest.validate started\n"
+      return "Incorrect http type: #{@httptype}" unless Cfg.requestParameters[@httptype.to_s]
+      return "Incorrect request type: #{@type}" unless Cfg.requestParameters[@httptype.to_s][@type.to_s]
+
+      # check if any empty parameter passed
+      @params.each do |param|
+        return "Incorrect parameter name: #{param[0]}" unless Cfg.requestParameters[@httptype.to_s][@type.to_s][param[0]]
+        return "Incorrect parameter value: #{param[0]}" unless param[1] && param[1].strip.length>0
+      end
+
       unless @bypass_api_check
         return 'Incorrect API key' unless Cfg.config['apiKeys'][@api_key]
         return 'Not authorized' unless Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s] && Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s][@type.to_s]
@@ -33,6 +42,7 @@ module Request
       return 'Incorrect search_date' if @params['search_date'] && (@params['search_date'].to_i.to_s != @params['search_date'])
       return 'Incorrect start_date' if @params['start_date'] && (@params['start_date'].to_i.to_s != @params['start_date'])
       return 'Incorrect end_date' if @params['end_date'] && (@params['end_date'].to_i.to_s != @params['end_date'])
+
       true
     end
 

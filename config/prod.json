@@ -3,11 +3,15 @@
   "logEntriesToken"    : "a9fe7059-be00-4e3f-8e0a-d5fc123ccaeb",
   "adminEmail"         : "sskyba@gmail.com",
   "cassandraCluster"   : {
-                          "hosts"             : [ "54.209.156.173" ],
-                          "port"              : 9042,
+                          "hosts"             : [ "52.206.51.214", "52.206.17.20", "52.206.56.221" ],
+                          "port"              : 9142,
                           "username"          : "",
                           "password"          : "",
-                          "keyspace"          : "entitlements_dev"
+                          "keyspace"          : "entitlements_dev",
+                          "use_ssl"           : true,
+                          "certServer"        : "./certificates/cassandraServers.cer.pem",
+                          "certClient"        : "./certificates/cassandraPro.cer.pem",
+                          "certKey"           : "./certificates/cassandraPro.key.pem"
   },
   "tables"             : {
                           "entitlements"            : "entitlements",
@@ -26,7 +30,6 @@
                                             "entitlements" : "2099-12-31 00:00:01",
                                             "tc"           : "2099-12-31 00:00:01",
                                             "archive"      : "2099-12-31 00:00:01",
-                                            "spdr"         : "2099-12-31 00:00:01",
                                             "cql"          : "2099-12-31 00:00:01"
                                           },
                                "put"    : {
@@ -66,10 +69,13 @@
     "rules" : {
       "SPDRNHL/Status/code=200" : { "entitled":true, "provisionTime":"defaultSpdrProvisioningMins", "source":"spdr", "redo":0 },
       "SPDRNHL/Status/code=404" : { "entitled":false, "provisionTime":"defaultSpdrNoProvisioningMins", "source":"spdr_error", "redo":0 },
+      "SPDRNHL/Status/code=400" : { "entitled":false, "provisionTime":"defaultSpdrNoProvisioningMins", "source":"spdr_error", "redo":0 },
+      "CAMPNHL/Status/code=404" : { "entitled":false, "provisionTime":"defaultSpdrNoProvisioningMins", "source":"spdr_error", "redo":0 },
+      "CAMPNHL/Status/code=400" : { "entitled":false, "provisionTime":"defaultSpdrNoProvisioningMins", "source":"spdr_error", "redo":0 },
       "CAMP/Status/code=400" : { "entitled":false, "provisionTime":"defaultSpdrNoProvisioningMins", "source":"spdr_error", "redo":0 },
       "CAMP/Status/code=503" : { "entitled":true, "provisionTime":"defaultSpdrErrorProvisioningMins", "source":"spdr_error", "redo":2 }
     },
-    "ruleDefault" : { "entitled":true, "provisionTime":"defaultSpdrErrorProvisioningMins", "source":"spdr_error", "redo":2 },
+    "ruleDefault" : { "entitled":true, "entitlements":["fullgcl", "gameplus", "wch"], "provisionTime":"defaultSpdrErrorProvisioningMins", "source":"spdr_error", "redo":2 },
     "entitlementPath" : "SPDRNHL/response/NHLType",
     "entitlementsMap" : {
       "free"       : ["fullgcl", "gameplus", "wch"],

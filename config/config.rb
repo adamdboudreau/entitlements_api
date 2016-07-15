@@ -18,7 +18,7 @@ class Cfg
   environments = Dir.glob('./config/*.json').select{ |f| File.file? f }.map { |f| File.basename(f, '.*' ) }
   abort 'Error: no any environments found to load (./config/*.json)' if environments.empty?
 
-  @config = []
+  @config, @requestParameters = []
 
   if ENV['RAKE_ENV'] # create/migrate rake task
     if environments.include? ENV['RAKE_ENV']
@@ -34,6 +34,7 @@ class Cfg
     end
   else
     if environments.include? ENV['RACK_ENV']
+      @requestParameters = JSON.parse(File.read("./config/requestParameters.cfg"))
       @config = JSON.parse(File.read("./config/#{ENV['RACK_ENV']}.json"))
       @config[:env] = ENV['RACK_ENV']
       @config['campAPI']['defaultSpdrProvisioningMins'] = ENV['minsSPDR'].to_i if ENV['minsSPDR']
@@ -48,12 +49,16 @@ class Cfg
     end
 
     unless ENV['CAMP_KEY']
-#      abort 'Error: CAMP_KEY environment variable is not set'
+      abort 'Error: CAMP_KEY environment variable is not set'
     end
   end 
 
   def self.config
     @config
+  end
+
+  def self.requestParameters
+    @requestParameters
   end
 
 end

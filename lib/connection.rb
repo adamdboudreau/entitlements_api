@@ -11,8 +11,16 @@ class Connection
     cluster = { hosts: Cfg.config['cassandraCluster']['hosts'], port: Cfg.config['cassandraCluster']['port'] }
     cluster[:username] = Cfg.config['cassandraCluster']['username'] unless Cfg.config['cassandraCluster']['username'].empty?
     cluster[:password] = Cfg.config['cassandraCluster']['password'] unless Cfg.config['cassandraCluster']['password'].empty?
+    $logger.debug "Connection.initialize started"
     begin
+      if (Cfg.config['cassandraCluster']['use_ssl'])
+        cluster[:server_cert] = Cfg.config['cassandraCluster']['certServer'] #'/Users/sergiy.skyba/code/certificates/cassandra/cassandraServers.cer.pem' #ENV['CASSANDRA_SERVER_CERT']
+        cluster[:client_cert] = Cfg.config['cassandraCluster']['certClient'] #'/Users/sergiy.skyba/code/certificates/cassandra/cassandraPro.cer.pem' #ENV['CASSANDRA_CLIENT_CERT']
+        cluster[:private_key] = Cfg.config['cassandraCluster']['certKey'] #'/Users/sergiy.skyba/code/certificates/cassandra/cassandraPro.key.pem' #ENV['CASSANDRA_PRIVATE_KEY']
+#        cluster[:passphrase] = 'Pswd1234!' #ENV['CASSANDRA_PASSPHRASE']
+      end
       @connection = Cassandra.cluster(cluster).connect
+      $logger.debug "Connection.initialize: connected to Cassandra OK!"
     rescue Exception => e
       $logger.error "Connection.initialize EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
     end
