@@ -21,7 +21,7 @@ module Request
 
     def validate
       $logger.debug "\nAbstractRequest.validate started\n"
-      return "Incorrect http type: #{@httptype}" unless Cfg.requestParameters[@httptype.to_s]
+      return "Incorrect http type: #{@httptype}" unless Cfg.requestParameters.key?(@httptype.to_s)
       return "Incorrect request type: #{@type}" unless Cfg.requestParameters[@httptype.to_s][@type.to_s]
 
       # check if any empty parameter passed
