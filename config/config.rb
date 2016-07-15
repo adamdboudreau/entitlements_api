@@ -18,7 +18,8 @@ class Cfg
   environments = Dir.glob('./config/*.json').select{ |f| File.file? f }.map { |f| File.basename(f, '.*' ) }
   abort 'Error: no any environments found to load (./config/*.json)' if environments.empty?
 
-  @config, @requestParameters = []
+  @config = []
+  @requestParameters = []
 
   if ENV['RAKE_ENV'] # create/migrate rake task
     if environments.include? ENV['RAKE_ENV']
