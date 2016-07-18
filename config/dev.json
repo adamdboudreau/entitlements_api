@@ -3,14 +3,18 @@
   "logEntriesToken"    : "a20c4669-a5d5-47aa-8269-2753c8863e24",
   "adminEmail"         : "sskyba@gmail.com",
   "cassandraCluster"   : {
-                          "hosts1"             : [ "127.0.0.1" ],
-                          "hosts2"             : [ "54.209.156.173" ],
-                          "hosts"             : [ "52.206.51.214", "52.206.17.20", "52.206.56.221" ],
+                          "hosts37"             : [ "52.206.51.214", "52.206.17.20", "52.206.56.221" ],
+                          "hosts308"             : [ "52.4.161.156", "52.203.144.117", "52.205.73.76" ],
+                          "hosts"             : [ "52.4.161.156", "52.203.144.117", "52.205.73.76" ],
                           "port"              : 9142,
                           "username"          : "",
                           "password"          : "",
                           "keyspace"          : "entitlements_dev",
-                          "use_ssl"           : true
+                          "use_ssl"           : true,
+                          "certServer"              : "./certificates/bundle_prddtccas.crt",
+                          "certServer37"        : "./certificates/cassandraServers.cer.pem",
+                          "certClient"        : "./certificates/cassandraPro.cer.pem",
+                          "certKey"           : "./certificates/cassandraPro.key.pem"
   },
   "tables"             : {
                           "entitlements"            : "entitlements",
@@ -42,8 +46,8 @@
                          },
   "archiveLimitPerRun" : 500,
   "campAPI" : {
-    "url"                         : "https://camp.egslb.net.rogers.com/api/v2/nhlEntitlements/",
-    "pemFile"                     : "./certificates/dtc_csr.pem",
+    "url"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2-lab3/nhlEntitlements/",
+    "pemFile"                     : "./certificates/camp.pem",
     "defaultSpdrProvisioningMins" : 1440,
     "defaultSpdrErrorProvisioningMins" : 60,
     "defaultSpdrNoProvisioningMins" : 0,

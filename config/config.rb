@@ -55,7 +55,7 @@ class Cfg
   end 
 
   def self.config
-    @config
+    @config.clone
   end
 
   def self.requestParameters

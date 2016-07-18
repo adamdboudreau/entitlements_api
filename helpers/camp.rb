@@ -14,41 +14,33 @@ class CAMP
 
     nAttempt = 0
     response, result = nil
-    rules = Cfg.config['campAPI']['rules'].clone
 
     begin
       result = nil
       nAttempt += 1
       $logger.debug "\nCAMP.check going to connect to #{uri}\n"
       response = Hash.from_xml(http.request(Net::HTTP::Get.new(uri.request_uri)).body)
-#      response['CAMPNHL']['Status']['code'] = "402"
       $logger.debug "\nCAMP.check pinging SPDR, attempt #{nAttempt}, response=#{response}\n"
-      $logger.debug "\nCAMP.check pinging SPDR, attempt #{nAttempt}, rules=#{rules}\n"
 
-      rules.each do |rule|
+      Cfg.config['campAPI']['rules'].clone.each do |rule|
         $logger.debug "\nCAMP.check checking rule: #{rule}\n"
         unless result
           path, value = rule[0].split('=')
-          result = rule[1] if (getValue(response,path) == value)
+          result = rule[1].clone if (getValue(response,path) == value)
           $logger.debug "\nCAMP.check during checking the rule, result=#{result}\n"
         end
       end
-      $logger.debug "\nCAMP.check checked all rules, result=#{result}\n"
-      result = Cfg.config['campAPI']['ruleDefault'] unless result
+      result = Cfg.config['campAPI']['ruleDefault'].clone unless result
       $logger.debug "\nCAMP.check pinging SPDR, attempt #{nAttempt}, result=#{result}\n"
     end until nAttempt>result['redo']
 
-    $logger.debug "\nCAMP.check finished pinging SPDR, attempt #{nAttempt}, result=#{result}\n"
     entitlementName = getValue(response, Cfg.config['campAPI']['entitlementPath'])
     entitlementName.downcase! if entitlementName
-    $logger.debug "\nCAMP.check entitlementName=#{entitlementName}\n"
-    $logger.debug "\nCAMP.check has key=#{Cfg.config['campAPI']['entitlementsMap'].key?(entitlementName)}\n"
-    $logger.debug "\nCAMP.check Cfg.config['campAPI']['entitlementsMap'][#{entitlementName}]=#{Cfg.config['campAPI']['entitlementsMap'][entitlementName]}\n"
     
     if (!result['entitlements']) || (result['entitlements'].empty?)
-      result['entitlements'] = (entitlementName && Cfg.config['campAPI']['entitlementsMap'].key?(entitlementName)) ? Cfg.config['campAPI']['entitlementsMap'][entitlementName] : Cfg.config['campAPI']['entitlementsMap']['default']
+      result['entitlements'] = (entitlementName && Cfg.config['campAPI']['entitlementsMap'][entitlementName]) ? Cfg.config['campAPI']['entitlementsMap'][entitlementName].clone : Cfg.config['campAPI']['entitlementsMap']['default'].clone
     end
-    $logger.debug "\nCAMP.check returns #{result}\n"
+    $logger.debug "\nCAMP.check finished with #{result}"
     result
   end
 
@@ -62,7 +54,7 @@ class CAMP
 
   def getEntitlementParamsToInsert (guid)
     results = []
-    spdrResults = check guid
+    spdrResults = self.check(guid)
     
     spdrResults['entitlements'].each do |entitlement|
       results << Hash[

@@ -141,13 +141,13 @@
     "defaultSpdrErrorProvisioningMins" : 60,
     "defaultSpdrNoProvisioningMins" : 0,
     "rules" : {
-      "SPDRNHL/Status/code=200" : { "entitled":true, "provisionTime":"defaultSpdrProvisioningMins", "source":"spdr", "redo":0, "entitlements":[] },
-      "SPDRNHL/Status/code=404" : { "entitled":false, "provisionTime":"defaultSpdrNoProvisioningMins", "source":"spdr_error", "redo":0, "entitlements":[] },
-      "SPDRNHL/Status/code=400" : { "entitled":false, "provisionTime":"defaultSpdrNoProvisioningMins", "source":"spdr_error", "redo":0, "entitlements":[] },
-      "CAMPNHL/Status/code=404" : { "entitled":false, "provisionTime":"defaultSpdrNoProvisioningMins", "source":"spdr_error", "redo":0, "entitlements":[] },
-      "CAMPNHL/Status/code=400" : { "entitled":false, "provisionTime":"defaultSpdrNoProvisioningMins", "source":"spdr_error", "redo":0, "entitlements":[] },
-      "CAMP/Status/code=400" : { "entitled":false, "provisionTime":"defaultSpdrNoProvisioningMins", "source":"spdr_error", "redo":0, "entitlements":[] },
-      "CAMP/Status/code=503" : { "entitled":true, "provisionTime":"defaultSpdrErrorProvisioningMins", "source":"spdr_error", "redo":2, "entitlements":[] }
+      "SPDRNHL/Status/code=200" : { "entitled":true, "provisionTime":"defaultSpdrProvisioningMins", "source":"spdr", "redo":0 },
+      "SPDRNHL/Status/code=404" : { "entitled":false, "provisionTime":"defaultSpdrNoProvisioningMins", "source":"spdr_error", "redo":0 },
+      "SPDRNHL/Status/code=400" : { "entitled":false, "provisionTime":"defaultSpdrNoProvisioningMins", "source":"spdr_error", "redo":0 },
+      "CAMPNHL/Status/code=404" : { "entitled":false, "provisionTime":"defaultSpdrNoProvisioningMins", "source":"spdr_error", "redo":0 },
+      "CAMPNHL/Status/code=400" : { "entitled":false, "provisionTime":"defaultSpdrNoProvisioningMins", "source":"spdr_error", "redo":0 },
+      "CAMP/Status/code=400" : { "entitled":false, "provisionTime":"defaultSpdrNoProvisioningMins", "source":"spdr_error", "redo":0 },
+      "CAMP/Status/code=503" : { "entitled":true, "provisionTime":"defaultSpdrErrorProvisioningMins", "source":"spdr_error", "redo":2 }
     },
     "ruleDefault" : { "entitled":true, "entitlements":["fullgcl", "gameplus", "wch"], "provisionTime":"defaultSpdrErrorProvisioningMins", "source":"spdr_error", "redo":2 },
     "entitlementPath" : "SPDRNHL/response/NHLType",

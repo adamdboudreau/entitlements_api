@@ -13,11 +13,10 @@ class Connection
     cluster[:password] = Cfg.config['cassandraCluster']['password'] unless Cfg.config['cassandraCluster']['password'].empty?
     $logger.debug "Connection.initialize started"
     begin
-      if (Cfg.config['cassandraCluster']['use_ssl'])
-        cluster[:server_cert] = Cfg.config['cassandraCluster']['certServer'] #'/Users/sergiy.skyba/code/certificates/cassandra/cassandraServers.cer.pem' #ENV['CASSANDRA_SERVER_CERT']
-        cluster[:client_cert] = Cfg.config['cassandraCluster']['certClient'] #'/Users/sergiy.skyba/code/certificates/cassandra/cassandraPro.cer.pem' #ENV['CASSANDRA_CLIENT_CERT']
-        cluster[:private_key] = Cfg.config['cassandraCluster']['certKey'] #'/Users/sergiy.skyba/code/certificates/cassandra/cassandraPro.key.pem' #ENV['CASSANDRA_PRIVATE_KEY']
-#        cluster[:passphrase] = 'Pswd1234!' #ENV['CASSANDRA_PASSPHRASE']
+      if Cfg.config['cassandraCluster']['use_ssl']
+        cluster[:server_cert] = Cfg.config['cassandraCluster']['certServer']
+        cluster[:client_cert] = Cfg.config['cassandraCluster']['certClient']
+        cluster[:private_key] = Cfg.config['cassandraCluster']['certKey']
       end
       @connection = Cassandra.cluster(cluster).connect
       $logger.debug "Connection.initialize: connected to Cassandra OK!"
@@ -55,6 +54,7 @@ class Connection
 
   def getEntitlements(params, exclude_future_entitlements = true, check_spdr = true)
     $logger.debug "\nConnection.getEntitlements started with params: #{params}, exclude_future_entitlements=#{exclude_future_entitlements}, check_spdr=#{check_spdr}\n"
+    $logger.debug "\nConnection.getEntitlements started, Cfg.config=#{Cfg.config}\n"
     result = Array.new
     products = params['products'] ? params['products'].split(',') : (params['product'] ? [params['product']] : nil)
     search_date = (params['search_date'] ? Time.at(params['search_date'].to_i) : Time.now).to_i*1000
