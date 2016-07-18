@@ -38,15 +38,16 @@ class Connection
     result = 0
 
     params_array.each do |params|
-      $logger.debug "\nConnection.putEntitled, iteration started, params['start_date']=#{params['start_date']}\n"
+      $logger.debug "\nConnection.putEntitlement, iteration started, params['start_date']=#{params['start_date']}\n"
       result = delete_existing ? self.deleteEntitlements(params, 'Updated') : 0
       start_date = params['start_date'] ? Time.at(params['start_date'].to_i) : Time.now
       end_date = params['end_date'] ? Time.at(params['end_date'].to_i) : Time.utc(2222, 1, 1)
       cql = "UPDATE #{@table_entitlements} SET start_date=? WHERE end_date=? AND guid=? AND brand=? AND product=? AND source=? AND trace_id=?"
       args = [start_date, end_date, params['guid'], params['brand'], params['product'], params['source'], params['trace_id']]
-      $logger.debug "\nConnection.putEntitled, running CQL=#{cql} with args=#{args}\n"
+      $logger.debug "\nConnection.putEntitlement, running CQL=#{cql} with args=#{args}\n"
       statement = @connection.prepare(cql)
       @connection.execute(statement, arguments: args)
+      params.except!("source","product","trace_id","start_date","end_date")
       putTC(params) if Request::TC.new(nil, params, :put, true).validate==true
     end
     result
@@ -54,7 +55,6 @@ class Connection
 
   def getEntitlements(params, exclude_future_entitlements = true, check_spdr = true)
     $logger.debug "\nConnection.getEntitlements started with params: #{params}, exclude_future_entitlements=#{exclude_future_entitlements}, check_spdr=#{check_spdr}\n"
-    $logger.debug "\nConnection.getEntitlements started, Cfg.config=#{Cfg.config}\n"
     result = Array.new
     products = params['products'] ? params['products'].split(',') : (params['product'] ? [params['product']] : nil)
     search_date = (params['search_date'] ? Time.at(params['search_date'].to_i) : Time.now).to_i*1000
@@ -85,7 +85,7 @@ class Connection
 
   def deleteEntitlements(params, msg = 'Deleted')
     $logger.debug "\nConnection.deleteEntitlements started with params: #{params}, msg=#{msg}\n"
-    moveEntitlementsToArchive getEntitlements(params, false), msg
+    moveEntitlementsToArchive getEntitlements(params, false, false), msg
   end
 
   def moveEntitlementsToArchive(entitlements, msg)

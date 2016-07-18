@@ -59,7 +59,7 @@ class Cfg
   end
 
   def self.requestParameters
-    @requestParameters
+    @requestParameters.clone
   end
 
 end
