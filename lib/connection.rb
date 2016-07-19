@@ -17,6 +17,7 @@ class Connection
         cluster[:server_cert] = Cfg.config['cassandraCluster']['certServer']
         cluster[:client_cert] = Cfg.config['cassandraCluster']['certClient']
         cluster[:private_key] = Cfg.config['cassandraCluster']['certKey']
+        cluster[:passphrase] = ENV['CASSANDRA_PASSPHRASE']
       end
       @connection = Cassandra.cluster(cluster).connect
       $logger.debug "Connection.initialize: connected to Cassandra OK!"
