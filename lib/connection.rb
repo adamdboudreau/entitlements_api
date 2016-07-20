@@ -200,18 +200,19 @@ class Connection
     nDeleted = 0
     begin
       rows = @connection.execute(cql)
+      puts "Going to process #{rows.length} records\n"
       rows.each do |row|
         if ((row['source'] == 'zuora') && (row['guid'] == row['trace_id']))
-          cql = "DELETE FROM #{@table_entitlements} WHERE guid=? AND brand=? AND product=? AND source='zuora' AND trace_id=?"
-          args = [row['guid'], row['brand'], row['product'], row['trace_id']]
-          puts "\nConnection.deleteZuora, running CQL=#{cql} with args=#{args}\n"
+          cql = "DELETE FROM #{@table_entitlements} WHERE guid=? AND end_date=? AND brand=? AND product=? AND source='zuora' AND trace_id=?"
+          args = [row['guid'], row['end_date'], row['brand'], row['product'], row['trace_id']]
+          puts "Deleting record #{nDeleted} for guid=#{row['guid']}\n"
           @connection.execute(@connection.prepare(cql), arguments: args)
           nDeleted += 1
         end
       end
       nDeleted
     rescue Exception => e
-      $logger.error "Connection.postArchive EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+      puts "Connection.deleteZuora EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
       -1
     end  
   end

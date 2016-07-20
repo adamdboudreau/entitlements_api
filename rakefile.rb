@@ -54,10 +54,6 @@ end
 desc 'delete'
 task :delete do
   @connection ||= Connection.instance.connection
-#  @connection.execute("DROP TABLE IF EXISTS #{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['tc']}")
-#  @connection.execute("DROP TABLE IF EXISTS #{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['history_entitlements']}")
-#  @connection.execute("DROP MATERIALIZED VIEW IF EXISTS #{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements_by_enddate']}")
-#  @connection.execute("DROP TABLE IF EXISTS #{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements']}")
   @connection.execute("DROP KEYSPACE IF EXISTS #{Cfg.config['cassandraCluster']['keyspace']}")
 end
 
@@ -76,32 +72,44 @@ task :delete_zuora do |task, args|
 end
 
 desc 'Migrate entitlements from Zuora'
-task :zuora do |task, args|
-  puts 'Zuora migration'
+task :zuora, [:rateplan, :guid, :billing, :autorenew, :subID] do |task, args|
+  # qa file format: rake zuora[0,5,4,6,7]
+  # prod file format: rake zuora[1,11,10,17,22]
+  puts "Zuora migration, task=#{task}, args=#{args}"
+  abort "Incorrect parameters: please use rake zuora[guidColumn, billingColumn, autorenewColumn, subIDColumn] format" unless args[:subID]
   csvFile = ENV['ZUORA_CSV']
-  abort "File not found: #{csvFile}" unless File.file?(csvFile)
+  abort "File not found: #{csvFile}" unless csvFile && File.file?(csvFile)
   nCounter = 0
-  sLine = '<guid>,gcl,1506729601,zuora,fullgcl,<guid>,1472688001' # guid,brand,end_date,source,product,trace_id,start_date
-  sLine = '<guid>,gcl,2017-09-01 00:00:01+0000,zuora,fullgcl,<guid>,2017-09-30 00:00:01+0000' # guid,brand,end_date,source,product,trace_id,start_date
-  sLine = '<guid>,gcl,2017-10-01 00:00:01+0000,zuora,frenchgcl,<guid>,2017-09-30 00:00:01+0000' # guid,brand,end_date,source,product,trace_id,start_date
-  sFileName = "temp_#{Time.now.to_i}.csv"
+  now = Time.now.to_i
+  # guid,brand,end_date,source,product,trace_id,start_date
+  sLineEB1 = "<GUID>,gcl,2099-09-30 00:00:01+0000,zuora,fullgcl,<subID>,#{now}000"
+  sLineEB2 = "<GUID>,gcl,2016-10-31 00:00:01+0000,zuora,wch,<subID>,#{now}000"
+  sLineFrench = "<GUID>,gcl,2099-09-30 00:00:01+0000,zuora,frenchgcl,<subID>,#{now}000"
+  sLineMonthly = "<GUID>,gcl,2099-09-30 00:00:01+0000,zuora,fullgcl,<subID>,#{now}000"
+  sFileName = "temp_#{now}.csv"
 
   File.open(sFileName, "w") do |f|
     CSV.foreach(csvFile) do |row|
-#      product, guid, start_date = row.to_s.split ','
-      if nCounter>0 then
+      puts "Processing line #{nCounter}: #{row}"
+      billing = row[args[:billing].to_i]
+      if billing && (billing.strip.downcase=='direct bill') then
         begin
-          sInsert = sLine.gsub('<guid>',row[11])
-          if (row[1].downcase.include? 'french') then
-            f.write "#{sInsert}\n"
-          elsif (row[1].downcase.include? 'monthly') then
-#            f.write sInsert.gsub('2017-09-30 00:00:01','2099-09-30 00:00:01') + "\n"
+          rateplan = row[args[:rateplan].to_i].strip.downcase
+          guid = row[args[:guid].to_i].strip
+          subID = row[args[:subID].to_i].strip
+          autorenew = row[args[:autorenew].to_i].strip.downcase
+          if (rateplan.include? 'french') then
+            f.write "#{sLineFrench.gsub('<GUID>',guid).gsub('<subID>',subID)}\n"
+          elsif ((rateplan.include? 'monthly') && (autorenew=='true')) then
+            f.write "#{sLineMonthly.gsub('<GUID>',guid).gsub('<subID>',subID)}\n"
+          elsif (autorenew=='true') then
+            f.write "#{sLineEB1.gsub('<GUID>',guid).gsub('<subID>',subID)}\n"
+            f.write "#{sLineEB2.gsub('<GUID>',guid).gsub('<subID>',subID)}\n"
           else
-#            f.write "#{sInsert}\n"
-#            f.write "#{sInsert.gsub('fullgcl','wch')}\n"
+            puts "Skipping line #{nCounter}: #{row}"
           end
-        rescue 
-          puts "Error happened on line #{nCounter}, skipped"
+        rescue Exception => e
+          puts "Skipped, error happened on line #{nCounter}: #{e.message}"
         end
       end
       nCounter += 1
