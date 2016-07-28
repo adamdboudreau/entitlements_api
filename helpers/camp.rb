@@ -1,7 +1,8 @@
 class CAMP
 
-  def check (guid)
-    uri = URI.parse(Cfg.config['campAPI']['url'] + guid.strip)
+  def check (params)
+    $logger.debug "\nCAMP.check started with params=#{params}\n"
+    uri = URI.parse(Cfg.config['campAPI']['url'] + params['guid'].strip)
     pem = File.read(Cfg.config['campAPI']['pemFile'])
     key = ENV['CAMP_KEY']
     $logger.debug "\nCAMP.check pkey size=#{key.to_s.size}\n"
@@ -19,7 +20,7 @@ class CAMP
       result = nil
       nAttempt += 1
       $logger.debug "\nCAMP.check going to connect to #{uri}\n"
-      response = Hash.from_xml(http.request(Net::HTTP::Get.new(uri.request_uri)).body)
+      response = params['spdrResponse'] ? params['spdrResponse'] : Hash.from_xml(http.request(Net::HTTP::Get.new(uri.request_uri)).body)
       $logger.debug "\nCAMP.check pinging SPDR, attempt #{nAttempt}, response=#{response}\n"
 
       Cfg.config['campAPI']['rules'].clone.each do |rule|
@@ -52,17 +53,17 @@ class CAMP
     hash
   end
 
-  def getEntitlementParamsToInsert (guid)
+  def getEntitlementParamsToInsert (params)
     results = []
-    spdrResults = self.check(guid)
+    spdrResults = self.check(params)
     
     spdrResults['entitlements'].each do |entitlement|
       results << Hash[
-        'guid'=>guid, 
+        'guid'=>params['guid'], 
         'brand'=>'gcl', 
         'product'=>entitlement, 
         'source'=>spdrResults['source'], 
-        'trace_id'=>guid,
+        'trace_id'=>params['guid'],
         'start_date'=>Time.now.to_i.to_s,
         'end_date'=>(Time.now + 60*Cfg.config['campAPI'][spdrResults['provisionTime']]).to_i.to_s
       ]

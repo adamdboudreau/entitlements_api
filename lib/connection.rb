@@ -76,7 +76,7 @@ class Connection
 
     if (check_spdr && result.empty?) # ping SPDR if no entitlements found
       $logger.debug 'Connection.getEntitlements, checking entitlements at SPDR to insert them to Cassandra'
-      putEntitlement CAMP.new.getEntitlementParamsToInsert(params['guid']), false
+      putEntitlement CAMP.new.getEntitlementParamsToInsert(params), false
       return Connection.instance.getEntitlements(params, exclude_future_entitlements, false)
     end
 
