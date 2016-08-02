@@ -21,7 +21,8 @@ class CAMP
       nAttempt += 1
       $logger.debug "\nCAMP.check going to connect to #{uri}\n"
       response = Hash.from_xml(params['spdrResponse'] ? params['spdrResponse'] : http.request(Net::HTTP::Get.new(uri.request_uri)).body)
-      $logger.debug "\nCAMP.check pinging SPDR, attempt #{nAttempt}, response=#{response}\n"
+      $logger.debug "\nCAMP.check params[spdrResponse] found, taking it as a response: #{params['spdrResponse']}\n" if params['spdrResponse']
+      $logger.debug "\nCAMP.check pinging SPDR, attempt #{nAttempt}, response=#{response}\n" unless params['spdrResponse']
 
       Cfg.config['campAPI']['rules'].clone.each do |rule|
         $logger.debug "\nCAMP.check checking rule: #{rule}\n"
