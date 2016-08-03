@@ -64,7 +64,35 @@ task :archive do
   puts (nRecordsArchived<0) ? 'Error happened during archiving' : "Archiving rake task finished successfully, #{nRecordsArchived} records have been archived"
 end
 
-desc 'Migrate entitlements from Zuora'
+desc 'Lowercase brand, source, product'
+task :lowercase do
+  table_entitlements = "#{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements']}"
+  puts "Lowercase rake task started, running SELECT * FROM #{table_entitlements}"
+  @connection ||= Connection.instance.connection
+  records = @connection.execute("SELECT * FROM #{table_entitlements}")
+  nProcessed = 0
+  nPassed = 0
+  batch = @connection.batch do |batch|
+    records.each do |row|
+      if ((row['brand']==row['brand'].downcase) && (row['source']==row['source'].downcase) && (row['product']==row['product'].downcase)) 
+        nPassed += 1
+      else
+        nProcessed += 1
+        cql = "DELETE FROM #{table_entitlements} WHERE guid=? AND brand=? AND source=? AND product=? AND trace_id=? AND end_date=?"
+        args = Array[row['guid'],row['brand'],row['source'],row['product'],row['trace_id'],row['end_date']]
+        batch.add(cql, arguments: args)
+        cql = "INSERT INTO #{table_entitlements} (guid, brand, end_date, source, product, trace_id, start_date) VALUES (?,?,?,?,?,?,?)"
+        args = Array[row['guid'],row['brand'].downcase,row['end_date'],row['source'].downcase,row['product'].downcase,row['trace_id'],row['start_date']]
+        batch.add(cql, arguments: args)
+      end
+      puts "#{nPassed+nProcessed} processed\n"
+    end
+  end
+  @connection.execute(batch) if nProcessed>0
+  puts "Lowercase procedure finished: #{nProcessed} records processed, #{nPassed} records passed"
+end
+
+desc 'Delete entitlements migrated from Zuora'
 task :delete_zuora do |task, args|
   puts 'Zuora cleanup'
   nRecordsDeleted = Connection.instance.deleteZuora

@@ -5,18 +5,24 @@ module Request
   class AbstractRequest
 
     def initialize (type, headers, params = {}, httptype = :get, bypass_api_check = false)
+      @start_time = Time.now.to_f
       @bypass_api_check = bypass_api_check
       @api_key = headers ? headers['Authorization'] : ''
-      $logger.info "\nAbstractRequest.initialize started with\ntype=#{type}\nparams=#{params.to_json}\nhttptype=#{httptype}\nbypass_api_check=#{bypass_api_check}"
-      $logger.info "\nAbstractRequest.initialize started with API key=#{@api_key}\nAPI key description: " + ((Cfg.config['apiKeys'][@api_key] && Cfg.config['apiKeys'][@api_key]['description']) ? Cfg.config['apiKeys'][@api_key]['description'] : '')
-      @start_time = Time.now.to_f
       @type = type
-      @params = params
       @httptype = httptype
       @response = { success: true }
       @error_message = nil
+
+      @params = params
+      @params['brand'].downcase! if @params['brand']
+      @params['source'].downcase! if @params['source']
+      @params['product'].downcase! if @params['product']
+
       # for testing
       Connection.instance.close if @params['disconnect']
+
+      $logger.info "\nAbstractRequest.initialize finished with\ntype=#{type}\nparams=#{@params.to_json}\nhttptype=#{httptype}\nbypass_api_check=#{bypass_api_check}"
+      $logger.info "\nAbstractRequest.initialize finished with API key=#{@api_key}\nAPI key description: " + ((Cfg.config['apiKeys'][@api_key] && Cfg.config['apiKeys'][@api_key]['description']) ? Cfg.config['apiKeys'][@api_key]['description'] : '')
     end
 
     def validate
@@ -63,7 +69,7 @@ module Request
           @response[:request][:input][k] = v
         end
       end
-      @response[:processingTimeMs] = '%.03f' % ((Time.now.to_f - @start_time)*1000)
+      @response[:processing_time_ms] = '%.03f' % ((Time.now.to_f - @start_time)*1000)
       $logger.debug "\nRequest: /#{@type}/?" + URI.encode(@params.map{|k,v| "#{k}=#{v}"}.join("&")) + "\nResponse: #{@response.to_s}\n\n"
       Connection.instance.connect if @params['disconnect']
       @response
