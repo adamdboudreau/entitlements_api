@@ -58,6 +58,16 @@
                                "delete" : { "entitlements" : "2099-12-31 00:00:01" }
                              }
                            },
+                           "k7Ho1Xn98gQL2jz6" : {
+                             "description": "MLBAM prod - readonly access",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01"
+                                          }
+                             }
+                           },
                            "3qNcotuG9Rprod" : {
                              "description": "Godwine prod - full access",
                              "allowed": {
