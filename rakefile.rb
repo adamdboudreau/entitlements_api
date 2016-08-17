@@ -145,3 +145,35 @@ task :zuora, [:rateplan, :guid, :billing, :autorenew, :subID] do |task, args|
   end
   puts "#{nCounter} records imported into #{sFileName}"
 end
+
+desc 'SPDR run'
+task :spdr do
+  csvFile = ENV['GUID_CSV']
+  abort "File not found: #{csvFile}" unless csvFile && File.file?(csvFile)
+  nCounter = 0
+  now = Time.now.to_i
+  sFileName = "SPDR_check_#{now}.csv"
+
+  pem = File.read(Cfg.config['campAPI']['pemFile'])
+  key = ENV['CAMP_KEY']
+
+  File.open(sFileName, "w") do |f|
+    CSV.foreach(csvFile) do |row|
+      puts "Processing line #{nCounter}: #{row}"
+      if (nCounter>0)
+        uri = URI.parse(Cfg.config['campAPI']['url'] + row[0].strip)
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.use_ssl = true
+        http.ciphers = 'DEFAULT:!DH'
+        http.cert = OpenSSL::X509::Certificate.new(pem)
+        http.key = OpenSSL::PKey::RSA.new(key)
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        response = Hash.from_xml(http.request(Net::HTTP::Get.new(uri.request_uri)).body)
+        f.write "#{row[0].strip},#{response.to_s}\n"
+      else
+        f.write "#{row[0].strip},#{row[1].strip}\n"
+      end
+      nCounter += 1
+    end
+  end
+end
