@@ -57,16 +57,18 @@ class Connection
   def getEntitlements(params, exclude_future_entitlements = true, check_spdr = true)
     $logger.debug "\nConnection.getEntitlements started with params: #{params}, exclude_future_entitlements=#{exclude_future_entitlements}, check_spdr=#{check_spdr}\n"
     result = Array.new
-    products = params['products'] ? params['products'].split(',') : (params['product'] ? [params['product']] : nil)
+    products = params['products'] ? params['products'].split(',') : nil
+    sources = params['source'] ? params['source'].split(',') : nil
+    trace_ids = params['trace_id'] ? params['trace_id'].split(',') : nil
     search_date = (params['search_date'] ? Time.at(params['search_date'].to_i) : Time.now).to_i*1000
     exclude_future_entitlements = exclude_future_entitlements && params.key?('search_date')
     cql = "SELECT guid, brand, source, product, trace_id, toUnixTimestamp(start_date) AS start_date, toUnixTimestamp(end_date) AS end_date FROM #{@table_entitlements} WHERE guid=? AND brand=? AND end_date>?"
     args = [params['guid'], params['brand'], search_date]
     @connection.execute(cql, arguments: args).each do |row|
       unless ((exclude_future_entitlements && (search_date<row['start_date'])) || 
-              (params['source'] && row['source']!=params['source']) || 
               (products && (!products.include? row['product'])) || 
-              (params['trace_id'] && row['trace_id']!=params['trace_id'])
+              (sources && (!sources.include? row['source'])) || 
+              (trace_ids && (!trace_ids.include? row['trace_id']))
              )
         row['start_date'] = row['start_date']/1000
         row['end_date'] = row['end_date']/1000

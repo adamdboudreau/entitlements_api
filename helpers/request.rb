@@ -41,6 +41,7 @@ module Request
         return 'Not authorized' unless Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s] && Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s][@type.to_s]
         return 'API key expired' unless DateTime.parse(Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s][@type.to_s])>DateTime.now
       end
+
       return true if (@httptype==:get) && (@type==:heartbeat || @type==:cql)
       return true if (@httptype==:post) && (@type==:archive)
       return 'Incorrect brand' unless Cfg.config['brands'].include? @params['brand']
@@ -104,6 +105,17 @@ module Request
       return 'Incorrect product' if (@httptype==:put) && !@params['product']
       return 'Incorrect trace_id' if (@httptype==:put) && !@params['trace_id']
       return 'Incorrect tc_version' if (@httptype==:put) && @params['tc_version'] && (@params['tc_version'].to_f.to_s!=@params['tc_version'])
+      return "API key does not have permission for this operation" unless validateKeyLimitations
+      true
+    end
+
+    def validateKeyLimitations
+      return true unless (@httptype==:put) && Cfg.config['apiKeys'][@api_key]['limited'] && Cfg.config['apiKeys'][@api_key]['limited']['put'] && Cfg.config['apiKeys'][@api_key]['limited']['put']['entitlement']
+      Cfg.config['apiKeys'][@api_key]['limited']['put']['entitlement'].each do |param|
+        paramName = param[0]
+        values = param[1]
+        return false unless values.include? @params[paramName]
+      end
       true
     end
 
@@ -140,6 +152,27 @@ module Request
     def validate
       return @error_message unless (@error_message = super) == true
       return 'Incorrect source' if (@httptype==:delete) && !@params['source']
+      return "API key does not have permission for this operation" unless validateKeyLimitations
+      true
+    end
+
+    def validateKeyLimitations
+      return true unless (@httptype==:delete) && Cfg.config['apiKeys'][@api_key]['limited'] && Cfg.config['apiKeys'][@api_key]['limited']['delete'] && Cfg.config['apiKeys'][@api_key]['limited']['delete']['entitlements']
+      Cfg.config['apiKeys'][@api_key]['limited']['delete']['entitlements'].each do |param|
+        paramName = param[0]
+        values = param[1]
+        if @params[paramName]
+          if (paramName=='products')
+            @params['products'].split(',').each do |product|
+              return false unless values.include? product
+            end
+          else
+            return false unless values.include? @params[paramName]
+          end
+        else
+          @params[paramName] = values.join(',')
+        end
+      end
       true
     end
 

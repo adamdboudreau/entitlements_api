@@ -121,7 +121,7 @@
                                }
                              }
                            },
-                           "BGkxIyxE" : {
+                           "stgtest123" : {
                              "description": "MLBAM - readonly access",
                              "allowed": {
                                "get"    : {
@@ -129,6 +129,27 @@
                                             "entitlements" : "2099-12-31 00:00:01",
                                             "tc"           : "2099-12-31 00:00:01",
                                             "archive"      : "2099-12-31 00:00:01"
+                               },
+                               "put"    : {
+                                            "entitlement" : "2099-12-31 00:00:01",
+                                            "tc"          : "2099-12-31 00:00:01"
+                                          },
+                               "post"   : { "archive" : "2099-12-31 00:00:01" },
+                               "delete" : { "entitlements" : "2099-12-31 00:00:01" }
+                             },
+                             "limited": {
+                               "put"    : {
+                                 "entitlement" : {
+                                   "source"   : ["test_zuora", "test_zuora1"],
+                                   "trace_id" : ["test_trace"]
+                                 }
+                               },
+                               "delete" : { 
+                                 "entitlements" : {
+                                   "source"   : ["test_zuora", "test_zuora1"],
+                                   "products" : ["pr1", "pr2"],
+                                   "trace_id" : ["test_trace", "test_trace1"]
+                                 }
                                }
                              }
                            }
