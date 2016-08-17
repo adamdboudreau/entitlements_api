@@ -57,10 +57,11 @@ class Connection
   def getEntitlements(params, exclude_future_entitlements = true, check_spdr = true)
     $logger.debug "\nConnection.getEntitlements started with params: #{params}, exclude_future_entitlements=#{exclude_future_entitlements}, check_spdr=#{check_spdr}\n"
     result = Array.new
-    products = params['products'] ? params['products'].split(',') : nil
+    products = params['products'] ? params['products'].split(',') : params['product']
     sources = params['source'] ? params['source'].split(',') : nil
     trace_ids = params['trace_id'] ? params['trace_id'].split(',') : nil
     search_date = (params['search_date'] ? Time.at(params['search_date'].to_i) : Time.now).to_i*1000
+    puts "\nConnection.getEntitlements, products=#{products}, sources=#{sources}, trace_ids=#{trace_ids}\n"
     exclude_future_entitlements = exclude_future_entitlements && params.key?('search_date')
     cql = "SELECT guid, brand, source, product, trace_id, toUnixTimestamp(start_date) AS start_date, toUnixTimestamp(end_date) AS end_date FROM #{@table_entitlements} WHERE guid=? AND brand=? AND end_date>?"
     args = [params['guid'], params['brand'], search_date]
