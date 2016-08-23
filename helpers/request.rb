@@ -101,9 +101,11 @@ module Request
 
     def validate
       return @error_message unless (@error_message = super) == true
-      return 'Incorrect source' if (@httptype==:put) && !@params['source']
-      return 'Incorrect product' if (@httptype==:put) && !@params['product']
-      return 'Incorrect trace_id' if (@httptype==:put) && !@params['trace_id']
+      return 'Missed source' if (@httptype==:put) && !@params['source']
+      return 'Missed product' if (@httptype==:put) && !@params['product'] && !@params['products']
+      return 'Duplicated product/products' if (@httptype==:put) && @params['product'] && @params['products']
+      return 'Incorrect product, use products instead' if (@httptype==:put) && @params['product'] && (@params['product'].include? ",")
+      return 'Missed trace_id' if (@httptype==:put) && !@params['trace_id']
       return 'Incorrect tc_version' if (@httptype==:put) && @params['tc_version'] && (@params['tc_version'].to_f.to_s!=@params['tc_version'])
       return "API key does not have permission for this operation" unless validateKeyLimitations
       true
@@ -124,7 +126,17 @@ module Request
 
         if @httptype==:put
           begin
-            @response['updated'] = !(@response['created'] = (Connection.instance.putEntitlement([@params])==0))
+            # build an array of params for multiple products passed
+            raParams = []
+            if @params['products']
+              @params['products'].split(',').each do |product|
+                raParams << @params.clone.except('products')
+                raParams[-1]['product'] = product
+              end
+            else
+              raParams = [@params]
+            end
+            @response['updated'] = !(@response['created'] = (Connection.instance.putEntitlement(raParams)==0))
           rescue Exception => e
             $logger.error "Entitlement EXCEPTION with putEntitlement: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
             @response = { success: false, message: 'Unknown error during creating/updating an entitlement' }
