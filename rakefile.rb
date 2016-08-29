@@ -102,7 +102,7 @@ end
 desc 'Migrate entitlements from Zuora'
 task :zuora, [:rateplan, :guid, :billing, :autorenew, :subID] do |task, args|
   # qa file format: rake zuora[0,5,4,6,7]
-  # prod file format: rake zuora[1,11,10,17,22]
+  # prod file format: rake zuora[1,11,10,17,22] [27,4,0,10,1]
   puts "Zuora migration, task=#{task}, args=#{args}"
   abort "Incorrect parameters: please use rake zuora[guidColumn, billingColumn, autorenewColumn, subIDColumn] format" unless args[:subID]
   csvFile = ENV['ZUORA_CSV']
@@ -119,7 +119,7 @@ task :zuora, [:rateplan, :guid, :billing, :autorenew, :subID] do |task, args|
   File.open(sFileName, "w") do |f|
     CSV.foreach(csvFile) do |row|
       puts "Processing line #{nCounter}: #{row}"
-      billing = row[args[:billing].to_i]
+      billing = 'direct bill' # row[args[:billing].to_i]
       if billing && (billing.strip.downcase=='direct bill') then
         begin
           rateplan = row[args[:rateplan].to_i].strip.downcase
