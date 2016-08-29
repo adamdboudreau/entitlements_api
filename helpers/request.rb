@@ -126,7 +126,7 @@ module Request
 
         if @httptype==:put
           begin
-            # build an array of params for multiple products passed
+            # build an array of params for multiple products inserting
             raParams = []
             if @params['products']
               @params['products'].split(',').each do |product|

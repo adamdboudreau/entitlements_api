@@ -13,7 +13,7 @@ task :create do
             CREATE KEYSPACE IF NOT EXISTS #{Cfg.config['cassandraCluster']['keyspace']}
             WITH replication = {
               'class': 'SimpleStrategy',
-              'replication_factor': 1
+              'replication_factor': 3
             }
   KEYSPACE_CQL
 
@@ -159,19 +159,22 @@ task :spdr do
 
   File.open(sFileName, "w") do |f|
     CSV.foreach(csvFile) do |row|
-      puts "Processing line #{nCounter}: #{row}"
       if (nCounter>0)
-        uri = URI.parse(Cfg.config['campAPI']['url'] + row[0].strip)
+        url = Cfg.config['campAPI']['url'] + row[4].strip
+        puts "Processing line #{nCounter}: #{row}, URL: #{url}"
+        uri = URI.parse(url)
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = true
         http.ciphers = 'DEFAULT:!DH'
         http.cert = OpenSSL::X509::Certificate.new(pem)
         http.key = OpenSSL::PKey::RSA.new(key)
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        response = Hash.from_xml(http.request(Net::HTTP::Get.new(uri.request_uri)).body)
-        f.write "#{row[0].strip},#{response.to_s}\n"
+        response = http.request(Net::HTTP::Get.new(uri.request_uri)).body
+#        puts "Got from SPDR: #{body}"
+#        response = Hash.from_xml(body)
+        f.write "#{row[4].strip}," + response.to_s.gsub("\n",'')[39..-1] + "\n"
       else
-        f.write "#{row[0].strip},#{row[1].strip}\n"
+        f.write "#{row[4].strip},SPDR response\n"
       end
       nCounter += 1
     end

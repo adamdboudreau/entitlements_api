@@ -7,7 +7,7 @@
                           "port"              : 9142,
                           "username"          : "",
                           "password"          : "",
-                          "keyspace"          : "entitlements_dev",
+                          "keyspace"          : "entitlements",
                           "use_ssl"           : true,
                           "certServer"              : "./certificates/bundle_prddtccas.crt",
                           "certServer37"        : "./certificates/cassandraServers.cer.pem",
