@@ -146,6 +146,40 @@ task :zuora, [:rateplan, :guid, :billing, :autorenew, :subID] do |task, args|
   puts "#{nCounter} records imported into #{sFileName}"
 end
 
+desc 'Delete entitlements making backup first'
+task :delete_batch, [:guid_position, :brand] do |task, args|
+  puts "Batch deleting started"
+  abort "Incorrect parameters: please use rake delete_batch[guid_position, brand] format" unless args[:guid_position] && args[:brand]
+  csvFile = ENV['CSV']
+  abort "File not found: #{csvFile}" unless csvFile && File.file?(csvFile)
+  nCounter = 0
+  now = Time.now.to_i
+  # guid,brand,end_date,source,product,trace_id,start_date
+  sFileName = "#{csvFile}_deleted_#{now}.csv"
+  table_entitlements = "#{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements']}"
+  @connection ||= Connection.instance.connection
+
+  File.open(sFileName, "w") do |f|
+    CSV.foreach(csvFile) do |row|
+      if row[args[:guid_position].to_i] && row[args[:guid_position].to_i].strip.size>5 
+        cql = "SELECT * FROM #{table_entitlements} WHERE guid='#{row[args[:guid_position].to_i]}' AND brand='#{args[:brand]}'"
+        puts "Processing GUID: #{row[args[:guid_position].to_i]}, CQL: #{cql}"
+        @connection.execute(cql).each do |ent_row|
+          f.write "#{row[args[:guid_position].to_i]},#{args[:brand]},#{ent_row['end_date']},#{ent_row['source']},#{ent_row['product']},#{ent_row['trace_id']},#{ent_row['start_date']}\n"
+          nCounter += 1
+        end
+        cql = "DELETE FROM #{table_entitlements} WHERE guid='#{row[args[:guid_position].to_i]}' AND brand='#{args[:brand]}'"
+        puts "Deleting, CQL: #{cql}"
+        @connection.execute(cql)
+      else
+        puts "Error processing GUID: #{row[args[:guid_position].to_i]}"
+      end
+    end
+  end
+  puts "#{nCounter} records deleted."
+  puts "All the records are backuped at #{sFileName}"
+end
+
 desc 'SPDR run'
 task :spdr do
   csvFile = ENV['GUID_CSV']
@@ -179,4 +213,34 @@ task :spdr do
       nCounter += 1
     end
   end
+end
+
+desc 'Compare GUIDs in from 2 CSV files'
+task :guid_compare, [:guid1, :guid2] do |task, args|
+  # format: rake guid_compare[4,4]
+  csvFile1 = ENV['CSV1']
+  csvFile2 = ENV['CSV2']
+  abort "File not found: #{csvFile1}" unless csvFile1 && File.file?(csvFile1)
+  abort "File not found: #{csvFile2}" unless csvFile2 && File.file?(csvFile2)
+  raGuids = []
+  guid_pos1 = args[:guid1].to_i
+  guid_pos2 = args[:guid2].to_i
+
+  nCounter = 0
+  CSV.foreach(csvFile1) do |row|
+#    puts "Reading line #{nCounter} for file 1"
+    raGuids << row[guid_pos1].strip.downcase
+    nCounter += 1
+  end
+  puts "raGuids initialized with #{nCounter} records"
+
+  nCounter = 0
+  CSV.foreach(csvFile2) do |row|
+#    puts "Checking line #{nCounter} at file 2"
+    guid2 = row[guid_pos2].strip.downcase
+    puts "#{guid2} exists at file 2 but not at file 1" unless raGuids.include? guid2
+    nCounter += 1
+  end
+
+  puts "guid_compare task finished ok, #{nCounter} different records found"
 end
