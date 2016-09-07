@@ -121,8 +121,26 @@
                                }
                              }
                            },
+                           "gO7qM5zV0pTm8Rf9" : {
+                             "description": "Vani Dangeti - full access",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01",
+                                            "cql"          : "2099-12-31 00:00:01"
+                                          },
+                               "put"    : {
+                                            "entitlement" : "2099-12-31 00:00:01",
+                                            "tc"          : "2099-12-31 00:00:01"
+                                          },
+                               "post"   : { "archive" : "2099-12-31 00:00:01" },
+                               "delete" : { "entitlements" : "2099-12-31 00:00:01" }
+                             }
+                           },
                            "stgtest123" : {
-                             "description": "MLBAM - readonly access",
+                             "description": "Readonly access with put/delete limitations",
                              "allowed": {
                                "get"    : {
                                             "heartbeat"    : "2099-12-31 00:00:01",
@@ -154,7 +172,7 @@
                              }
                            }
                          },
-  "archiveLimitPerRun" : 500,
+  "archiveLimitPerRun" : 400,
   "campAPI" : {
     "url"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2-lab3/nhlEntitlements/",
     "pemFile"                     : "./certificates/camp.pem",

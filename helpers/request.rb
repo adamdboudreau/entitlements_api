@@ -19,7 +19,7 @@ module Request
       @params['product'].downcase! if @params['product']
 
       # for testing
-      Connection.instance.close if @params['disconnect']
+#      Connection.instance.close if @params['disconnect']
 
       $logger.info "\nAbstractRequest.initialize finished with\ntype=#{type}\nparams=#{@params.to_json}\nhttptype=#{httptype}\nbypass_api_check=#{bypass_api_check}"
       $logger.info "\nAbstractRequest.initialize finished with API key=#{@api_key}\nAPI key description: " + ((Cfg.config['apiKeys'][@api_key] && Cfg.config['apiKeys'][@api_key]['description']) ? Cfg.config['apiKeys'][@api_key]['description'] : '')
@@ -72,7 +72,7 @@ module Request
       end
       @response[:processing_time_ms] = '%.03f' % ((Time.now.to_f - @start_time)*1000)
       $logger.debug "\nRequest: /#{@type}/?" + URI.encode(@params.map{|k,v| "#{k}=#{v}"}.join("&")) + "\nResponse: #{@response.to_s}\n\n"
-      Connection.instance.connect if @params['disconnect']
+#      Connection.instance.connect if @params['disconnect']
       @response
     end
 

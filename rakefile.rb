@@ -180,6 +180,68 @@ task :delete_batch, [:guid_position, :brand] do |task, args|
   puts "All the records are backuped at #{sFileName}"
 end
 
+desc 'Update entitlements'
+task :update_batch do # accepts csv file with guid, old_trace_id, new_trace_id structure
+  puts "Batch updatng started"
+  csvFile = ENV['CSV']
+  abort "File not found: #{csvFile}" unless csvFile && File.file?(csvFile)
+  nCounter = 0
+
+  table_entitlements = "#{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements']}"
+  @connection ||= Connection.instance.connection
+
+  CSV.foreach(csvFile) do |row|
+    if row[0] && row[0].strip.size>5 
+      cql = "SELECT * FROM #{table_entitlements} WHERE guid='#{row[0]}' AND brand='gcl'"
+      puts "Processed #{nCounter}, now processing GUID: #{row[0]}"
+      records = @connection.execute(cql)
+      bProceed = false
+
+      batch = @connection.batch do |batch|
+        records.each do |ent_row|
+          if ent_row['trace_id']==row[2]
+            cql = "DELETE FROM #{table_entitlements} WHERE guid=? AND brand=? AND source=? AND product=? AND trace_id=? AND end_date=?"
+            args = Array[ent_row['guid'],ent_row['brand'],ent_row['source'],ent_row['product'],ent_row['trace_id'],ent_row['end_date']]
+            batch.add(cql, arguments: args)
+            cql = "INSERT INTO #{table_entitlements} (guid, brand, end_date, source, product, trace_id, start_date) VALUES (?,?,?,?,?,?,?)"
+            args = Array[ent_row['guid'],ent_row['brand'],ent_row['end_date'],ent_row['source'],ent_row['product'],row[1],ent_row['start_date']]
+            batch.add(cql, arguments: args)
+            nCounter += 1
+            bProceed = true
+          end
+        end
+      end
+      @connection.execute(batch) if bProceed
+    end
+  end
+  puts "#{nCounter} records pseudo updated"
+end
+
+desc 'Check entitlements as a batch'
+task :check_batch do
+  csvFile = ENV['CSV']
+  abort "File not found: #{csvFile}" unless csvFile && File.file?(csvFile)
+
+  table_entitlements = "#{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements']}"
+  @connection ||= Connection.instance.connection
+  nProcessed = 0
+  nEntitled = 0
+  search_date = Time.now.to_i*1000
+  puts "check_batch started. search_date: #{search_date}"
+  CSV.foreach(csvFile) do |row|
+    bEntitled = false
+    nProcessed += 1
+    cql = "SELECT toUnixTimestamp(start_date) AS start_date, toUnixTimestamp(end_date) AS end_date FROM #{table_entitlements} WHERE guid='#{row[0]}' AND brand='gcl'"
+#    puts "Checking record #{nProcessed}: #{row[0]}"
+    @connection.execute(cql).each do |ent_row|
+      bEntitled = true if ent_row['start_date']<search_date && ent_row['end_date']>search_date
+    end
+    puts "Entitlement found for line #{nProcessed}: #{row[0]}" if bEntitled
+    nEntitled += 1 if bEntitled
+  end
+  puts "check_batch finished, #{nProcessed} records processed, #{nEntitled} entitlements found"
+end
+
 desc 'SPDR run'
 task :spdr do
   csvFile = ENV['GUID_CSV']
@@ -194,7 +256,7 @@ task :spdr do
   File.open(sFileName, "w") do |f|
     CSV.foreach(csvFile) do |row|
       if (nCounter>0)
-        url = Cfg.config['campAPI']['url'] + row[4].strip
+        url = Cfg.config['campAPI']['url'] + row[0].strip
         puts "Processing line #{nCounter}: #{row}, URL: #{url}"
         uri = URI.parse(url)
         http = Net::HTTP.new(uri.host, uri.port)
@@ -206,9 +268,9 @@ task :spdr do
         response = http.request(Net::HTTP::Get.new(uri.request_uri)).body
 #        puts "Got from SPDR: #{body}"
 #        response = Hash.from_xml(body)
-        f.write "#{row[4].strip}," + response.to_s.gsub("\n",'')[39..-1] + "\n"
+        f.write "#{row[0].strip}," + response.to_s.gsub("\n",'')[39..-1] + "\n"
       else
-        f.write "#{row[4].strip},SPDR response\n"
+        f.write "#{row[0].strip},SPDR response\n"
       end
       nCounter += 1
     end
