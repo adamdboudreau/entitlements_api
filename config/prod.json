@@ -138,7 +138,7 @@
                              }
                            }
                          },
-  "archiveLimitPerRun" : 400,
+  "archiveLimitPerRun" : 250,
   "campAPI" : {
     "url"                         : "https://camp.egslb.net.rogers.com/api/v2/nhlEntitlements/",
     "pemFile"                     : "./certificates/dtc_csr.pem",

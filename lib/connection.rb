@@ -166,9 +166,10 @@ class Connection
     result.sort! { |a,b| a[orderBy] <=> b[orderBy] }
   end
 
-  def postArchive
-    $logger.debug "\nConnection.postArchive started\n"
-    cql = "SELECT guid, brand, source, product, trace_id, toUnixTimestamp(start_date) AS start_date, toUnixTimestamp(end_date) AS end_date FROM #{@table_entitlements_by_enddate} WHERE end_date<toTimestamp(NOW()) LIMIT #{Cfg.config['archiveLimitPerRun']} ALLOW FILTERING"
+  def postArchive limit
+    limit ||= Cfg.config['archiveLimitPerRun']
+    cql = "SELECT guid, brand, source, product, trace_id, toUnixTimestamp(start_date) AS start_date, toUnixTimestamp(end_date) AS end_date FROM #{@table_entitlements_by_enddate} WHERE end_date<toTimestamp(NOW()) LIMIT #{limit} ALLOW FILTERING"
+    $logger.debug "\nConnection.postArchive started, CQL=#{cql}n"
     entitlements = Array.new
     begin
       @connection.execute(cql).each do |row|
@@ -176,6 +177,7 @@ class Connection
         row['end_date'] = row['end_date']/1000
         entitlements << row 
       end
+      puts "Connection.postArchive entitlements to archive: #{entitlements}"
       moveEntitlementsToArchive entitlements, 'Cleanup'
     rescue Exception => e
       $logger.error "Connection.postArchive EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"

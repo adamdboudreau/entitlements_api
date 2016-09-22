@@ -58,9 +58,9 @@ task :delete do
 end
 
 desc 'archive'
-task :archive do
-  puts 'Archiving rake task started'
-  nRecordsArchived = Connection.instance.postArchive
+task :archive, [:limit] do |task, args|
+  puts "Archiving rake task started with limit=#{args[:limit]}"
+  nRecordsArchived = Connection.instance.postArchive args[:limit]
   puts (nRecordsArchived<0) ? 'Error happened during archiving' : "Archiving rake task finished successfully, #{nRecordsArchived} records have been archived"
 end
 
@@ -275,6 +275,25 @@ task :spdr do
       nCounter += 1
     end
   end
+end
+
+desc 'SPDR single call'
+task :spdr_call do
+  url = ENV['CAMP_CALL_URL']
+  abort "URL not found: #{url}" unless url
+
+  pem = File.read(Cfg.config['campAPI']['pemFile'])
+  key = ENV['CAMP_KEY']
+
+  uri = URI.parse(url)
+  puts "Trying URI: #{uri}"
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = true
+  http.ciphers = 'DEFAULT:!DH'
+  http.cert = OpenSSL::X509::Certificate.new(pem)
+  http.key = OpenSSL::PKey::RSA.new(key)
+  http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+  puts http.request(Net::HTTP::Get.new(uri.request_uri)).body
 end
 
 desc 'Compare GUIDs in from 2 CSV files'
