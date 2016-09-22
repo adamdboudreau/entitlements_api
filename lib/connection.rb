@@ -166,7 +166,7 @@ class Connection
     result.sort! { |a,b| a[orderBy] <=> b[orderBy] }
   end
 
-  def postArchive limit
+  def postArchive (limit = nil)
     limit ||= Cfg.config['archiveLimitPerRun']
     cql = "SELECT guid, brand, source, product, trace_id, toUnixTimestamp(start_date) AS start_date, toUnixTimestamp(end_date) AS end_date FROM #{@table_entitlements_by_enddate} WHERE end_date<toTimestamp(NOW()) LIMIT #{limit} ALLOW FILTERING"
     $logger.debug "\nConnection.postArchive started, CQL=#{cql}n"
