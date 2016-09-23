@@ -203,7 +203,7 @@ module Request
 
           begin
             @response['entitlements'] = Connection.instance.getEntitlements(@params)
-            @response['entitled'] = !(@response['entitlements'].empty? || (@response['entitlements'].count==1 && @response['entitlements'].include? 'gameplus'))
+            @response['entitled'] = !(@response['entitlements'].empty? || (@response['entitlements'].count==1 && (@response['entitlements'].include? "gameplus")))
           rescue Exception => e
             $logger.error "Entitlements EXCEPTION with getEntitlements: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
             @response = { success: false, entitled: true, entitlements: [] }
