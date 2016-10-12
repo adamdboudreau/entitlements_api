@@ -110,7 +110,7 @@ task :zuora, [:rateplan, :guid, :billing, :autorenew, :subID] do |task, args|
   nCounter = 0
   now = Time.now.to_i
   # guid,brand,end_date,source,product,trace_id,start_date
-  sLineEB1 = "<GUID>,gcl,2099-09-30 00:00:01+0000,zuora,fullgcl,<subID>,#{now}000"
+  sLineEB1 = "<GUID>,gcl,2099-12-31 00:00:01+0000,zuora,fullgcl,<subID>,#{now}000"
   sLineEB2 = "<GUID>,gcl,2016-10-31 00:00:01+0000,zuora,wch,<subID>,#{now}000"
   sLineFrench = "<GUID>,gcl,2099-09-30 00:00:01+0000,zuora,frenchgcl,<subID>,#{now}000"
   sLineMonthly = "<GUID>,gcl,2099-09-30 00:00:01+0000,zuora,fullgcl,<subID>,#{now}000"
@@ -119,20 +119,20 @@ task :zuora, [:rateplan, :guid, :billing, :autorenew, :subID] do |task, args|
   File.open(sFileName, "w") do |f|
     CSV.foreach(csvFile) do |row|
       puts "Processing line #{nCounter}: #{row}"
-      billing = 'direct bill' # row[args[:billing].to_i]
+      billing = (args[:billing].to_i < 0 ) ? 'direct bill' : row[args[:billing].to_i]
       if billing && (billing.strip.downcase=='direct bill') then
         begin
-          rateplan = row[args[:rateplan].to_i].strip.downcase
+          rateplan = (args[:rateplan].to_i < 0 ) ? '' : row[args[:rateplan].to_i].strip.downcase
           guid = row[args[:guid].to_i].strip
           subID = row[args[:subID].to_i].strip
-          autorenew = row[args[:autorenew].to_i].strip.downcase
+          autorenew = (args[:autorenew].to_i < 0 ) ? 'true' : row[args[:autorenew].to_i].strip.downcase
           if (rateplan.include? 'french') then
             f.write "#{sLineFrench.gsub('<GUID>',guid).gsub('<subID>',subID)}\n"
           elsif ((rateplan.include? 'monthly') && (autorenew=='true')) then
             f.write "#{sLineMonthly.gsub('<GUID>',guid).gsub('<subID>',subID)}\n"
           elsif (autorenew=='true') then
             f.write "#{sLineEB1.gsub('<GUID>',guid).gsub('<subID>',subID)}\n"
-            f.write "#{sLineEB2.gsub('<GUID>',guid).gsub('<subID>',subID)}\n"
+            #f.write "#{sLineEB2.gsub('<GUID>',guid).gsub('<subID>',subID)}\n"
           else
             puts "Skipping line #{nCounter}: #{row}"
           end
@@ -218,7 +218,7 @@ task :update_batch do # accepts csv file with guid, old_trace_id, new_trace_id s
 end
 
 desc 'Check entitlements as a batch'
-task :check_batch do
+task :check_batch, [:guid_position, :start_line] do |task, args|
   csvFile = ENV['CSV']
   abort "File not found: #{csvFile}" unless csvFile && File.file?(csvFile)
 
@@ -227,16 +227,17 @@ task :check_batch do
   nProcessed = 0
   nEntitled = 0
   search_date = Time.now.to_i*1000
-  puts "check_batch started. search_date: #{search_date}"
+  puts "check_batch started. guid_position=#{args[:guid_position]}, start_line=#{args[:start_line]}, search_date: #{search_date}"
   CSV.foreach(csvFile) do |row|
     bEntitled = false
     nProcessed += 1
-    cql = "SELECT toUnixTimestamp(start_date) AS start_date, toUnixTimestamp(end_date) AS end_date FROM #{table_entitlements} WHERE guid='#{row[0]}' AND brand='gcl'"
-#    puts "Checking record #{nProcessed}: #{row[0]}"
+    next if (nProcessed<=args[:start_line].to_i)
+    cql = "SELECT toUnixTimestamp(start_date) AS start_date, toUnixTimestamp(end_date) AS end_date FROM #{table_entitlements} WHERE guid='#{row[args[:guid_position].to_i]}' AND brand='gcl'"
     @connection.execute(cql).each do |ent_row|
       bEntitled = true if ent_row['start_date']<search_date && ent_row['end_date']>search_date
     end
-    puts "Entitlement found for line #{nProcessed}: #{row[0]}" if bEntitled
+#    puts "Processing #{row[args[:guid_position].to_i]}"
+    puts "Entitlement found for line #{nProcessed}: #{row[args[:guid_position].to_i]}" if bEntitled
     nEntitled += 1 if bEntitled
   end
   puts "check_batch finished, #{nProcessed} records processed, #{nEntitled} entitlements found"

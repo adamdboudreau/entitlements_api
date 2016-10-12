@@ -93,25 +93,25 @@ class CAMP
     accounts.each do |account|
       puts "CAMP.getEntitlements Processing account: #{account}\nservices: #{account['Services']}"
       if result['entitlements'].count<3 &&
-         account.key?("AccountStatus") && (account['AccountStatus'].downcase=='active') && 
-         account.key?("AccountType") && (account['AccountType'].downcase!='zuora')
+        account.key?("AccountStatus") && (account['AccountStatus'].downcase=='active') && 
+        account.key?("AccountType") && (account['AccountType'].downcase!='zuora')
 
-           result['entitlements'] = ['gameplus']
+          result['entitlements'] = ['gameplus']
          
-           if account.key?("Services")
-             entitlements = account['Services']['Entitlement']
-             entitlements = (entitlements==nil) ? Array.new : (entitlements.kind_of?(Array) ? entitlements : Array[entitlements] )
-             entitlements.each do |entitlement|
-               puts "CAMP.getEntitlements Processing entitlement: #{entitlement}"
-               if entitlement.key?("Type") && (entitlement['Type'].downcase=='nhl') && 
-                  entitlement.key?("SubType") && (entitlement['SubType'].downcase.include? 'free')
-                    result['entitlements'] = ['gameplus','fullgcl','wch']
-               end
-             end
-           end
+          if account.key?("Services")
+            entitlements = account['Services']['Entitlement']
+            entitlements = (entitlements==nil) ? Array.new : (entitlements.kind_of?(Array) ? entitlements : Array[entitlements] )
+            entitlements.each do |entitlement|
+              puts "CAMP.getEntitlements Processing entitlement: #{entitlement}"
+              if entitlement.key?("Type") && (entitlement['Type'].downcase=='nhl') && 
+                 entitlement.key?("SubType") && (entitlement['SubType'].downcase.include? 'free')
+                  result['entitlements'] = ['gameplus','fullgcl','wch']
+              end
+            end
+          end
       end
     end
-    puts "CAMP.getEntitlements returns  #{result}"
+    puts "CAMP.getEntitlements returns #{result}"
     result
   end
 
@@ -125,7 +125,7 @@ class CAMP
 
   def getEntitlementParamsToInsert (params)
     results = []
-#    spdrResults = self.check(params)
+#    spdrResults = self.check(params) # WAS HERE BEFORE RGCL3-607, replaced by the next line
     spdrResults = self.getEntitlements(params)
     
     spdrResults['entitlements'].each do |entitlement|

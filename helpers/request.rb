@@ -11,6 +11,7 @@ module Request
       @type = type
       @httptype = httptype
       @response = { success: true }
+      @error_code = 0
       @error_message = nil
 
       @params = params
@@ -27,28 +28,31 @@ module Request
 
     def validate
       $logger.debug "\nAbstractRequest.validate started. httptype=#{@httptype}\n"
-      return "Incorrect http type: #{@httptype}" unless Cfg.requestParameters[@httptype.to_s]
-      return "Incorrect request type: #{@type}" unless Cfg.requestParameters[@httptype.to_s][@type.to_s]
+      begin @error_code = 4006; return "Incorrect http type: #{@httptype}" end unless Cfg.requestParameters[@httptype.to_s]
+      begin @error_code = 4006; return "Incorrect request type: #{@type}" end unless Cfg.requestParameters[@httptype.to_s][@type.to_s]
 
       # check if any empty parameter passed
       @params.each do |param|
-        return "Incorrect parameter name: #{param[0]}" unless Cfg.requestParameters[@httptype.to_s][@type.to_s][param[0]]
-        return "Incorrect parameter value: #{param[0]}" unless param[1] && param[1].strip.length>0
+        begin @error_code = 4003; return "Incorrect parameter name: #{param[0]}" end unless Cfg.requestParameters[@httptype.to_s][@type.to_s][param[0]]
+        begin @error_code = 4004; return "Incorrect parameter value: #{param[0]}" end unless param[1] && param[1].strip.length>0
       end
 
       unless @bypass_api_check
-        return 'Incorrect API key' unless Cfg.config['apiKeys'][@api_key]
-        return 'Not authorized' unless Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s] && Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s][@type.to_s]
-        return 'API key expired' unless DateTime.parse(Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s][@type.to_s])>DateTime.now
+        begin @error_code = 4000; return 'Incorrect API key' end unless Cfg.config['apiKeys'][@api_key]
+        begin @error_code = 4007; return 'Not authorized' end unless Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s] && Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s][@type.to_s]
+        begin @error_code = 4008; return 'API key expired' end unless DateTime.parse(Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s][@type.to_s])>DateTime.now
       end
 
       return true if (@httptype==:get) && (@type==:heartbeat || @type==:cql)
+      begin @error_code = 4001; return "No connection to Cassandra" end unless Connection.instance.connection
       return true if (@httptype==:post) && (@type==:archive)
+      @error_code = 4005
       return 'Incorrect brand' unless Cfg.config['brands'].include? @params['brand']
-      return 'Incorrect guid' unless @params['guid']
+      begin @error_code = 4004; return 'Incorrect guid' end unless @params['guid']
       return 'Incorrect search_date' if @params['search_date'] && (@params['search_date'].to_i.to_s != @params['search_date'])
       return 'Incorrect start_date' if @params['start_date'] && (@params['start_date'].to_i.to_s != @params['start_date'])
       return 'Incorrect end_date' if @params['end_date'] && (@params['end_date'].to_i.to_s != @params['end_date'])
+      @error_code = 0
 
       true
     end
@@ -59,6 +63,7 @@ module Request
         @response[:tc] = tc if tc
       rescue Exception => e
         $logger.error "AbstractRequest EXCEPTION with getTC: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+        @error_code = 5000 if @error_code==0
         @response[:success] = false
       end
 
@@ -70,6 +75,7 @@ module Request
           @response[:request][:input][k] = v
         end
       end
+      @response[:error_code] = @error_code if @error_code>0
       @response[:processing_time_ms] = '%.03f' % ((Time.now.to_f - @start_time)*1000)
       $logger.debug "\nRequest: /#{@type}/?" + URI.encode(@params.map{|k,v| "#{k}=#{v}"}.join("&")) + "\nResponse: #{@response.to_s}\n\n"
 #      Connection.instance.connect if @params['disconnect']
@@ -101,13 +107,13 @@ module Request
 
     def validate
       return @error_message unless (@error_message = super) == true
-      return 'Missed source' if (@httptype==:put) && !@params['source']
-      return 'Missed product' if (@httptype==:put) && !@params['product'] && !@params['products']
-      return 'Duplicated product/products' if (@httptype==:put) && @params['product'] && @params['products']
-      return 'Incorrect product, use products instead' if (@httptype==:put) && @params['product'] && (@params['product'].include? ",")
-      return 'Missed trace_id' if (@httptype==:put) && !@params['trace_id']
-      return 'Incorrect tc_version' if (@httptype==:put) && @params['tc_version'] && (@params['tc_version'].to_f.to_s!=@params['tc_version'])
-      return "API key does not have permission for this operation" unless validateKeyLimitations
+      begin @error_code = 4004; return 'Missed source' end if (@httptype==:put) && !@params['source']
+      begin @error_code = 4004; return 'Missed product' end if (@httptype==:put) && !@params['product'] && !@params['products']
+      begin @error_code = 4005; return 'Duplicated product/products' end if (@httptype==:put) && @params['product'] && @params['products']
+      begin @error_code = 4005; return 'Incorrect product, use products instead' end if (@httptype==:put) && @params['product'] && (@params['product'].include? ",")
+      begin @error_code = 4004; return 'Missed trace_id' end if (@httptype==:put) && !@params['trace_id']
+      begin @error_code = 4005; return 'Incorrect tc_version' end if (@httptype==:put) && @params['tc_version'] && (@params['tc_version'].to_f.to_s!=@params['tc_version'])
+      begin @error_code = 4007; return "API key does not have permission for this operation" end unless validateKeyLimitations
       true
     end
 
@@ -139,10 +145,12 @@ module Request
             @response['updated'] = !(@response['created'] = (Connection.instance.putEntitlement(raParams)==0))
           rescue Exception => e
             $logger.error "Entitlement EXCEPTION with putEntitlement: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+            @error_code = 5000
             @response = { success: false, message: 'Unknown error during creating/updating an entitlement' }
           end
 
         else
+          @error_code = 4006
           @response = { success: false, message: 'Incorrect request type' }
         end
       else # validation failed
@@ -163,8 +171,8 @@ module Request
 
     def validate
       return @error_message unless (@error_message = super) == true
-      return 'Incorrect source' if (@httptype==:delete) && !@params['source']
-      return "API key does not have permission for this operation" unless validateKeyLimitations
+      begin @error_code = 4004; return 'Incorrect source' end if (@httptype==:delete) && !@params['source']
+      begin @error_code = 4007; return "API key does not have permission for this operation" end unless validateKeyLimitations
       true
     end
 
@@ -196,6 +204,7 @@ module Request
             @response['deleted'] = Connection.instance.deleteEntitlements(@params)
           rescue Exception => e
             $logger.error "Entitlements EXCEPTION with deleteEntitlements: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+            @error_code = 5000
             @response = { success: false, message: 'Unknown error during deleting' }
           end
 
@@ -206,10 +215,12 @@ module Request
             @response['entitled'] = !(@response['entitlements'].empty? || (@response['entitlements'].count==1 && @response['entitlements'][0] && @response['entitlements'][0]["product"]=="gameplus"))
           rescue Exception => e
             $logger.error "Entitlements EXCEPTION with getEntitlements: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+            @error_code = 5000
             @response = { success: false, entitled: true, entitlements: [] }
           end
 
         else
+          @error_code = 4006
           @response = { success: false, message: 'Incorrect request type' }
         end
       else # validation failed
@@ -238,6 +249,7 @@ module Request
           return 'Too old tc_version to renew' if tc && (tc[:version].to_f > @params['tc_version'].to_f)
         rescue Exception => e
           $logger.error "TC EXCEPTION with getEntitlements: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+          @error_code = 5000
           return 'Error getting TC'
         end
       end
@@ -246,7 +258,7 @@ module Request
 
     def process
       if (@error_message = validate) == true # validation ok
-        @response = { success: false, message: @error_message } if @httptype==:put && !Connection.instance.putTC(@params)
+        begin @error_code = 5000; @response = { success: false, message: @error_message } end if @httptype==:put && !Connection.instance.putTC(@params)
       else
         @response = { success: false, message: @error_message }
       end
@@ -266,10 +278,11 @@ module Request
       if (@error_message = validate) == true
         if @httptype == :post
           @response['processed'] = Connection.instance.postArchive
-          @response = { success: false, message: 'Unknown error' } if @response['processed'] < 0
+          begin @error_code = 5000; @response = { success: false, message: 'Unknown error' } end if @response['processed'] < 0
         elsif @httptype == :get
           @response['entitlements'] = Connection.instance.getArchive(@params, 'start_date')
         else
+          @error_code = 4006
           @response = { success: false, message: 'Incorrect request type' }
         end
       else
