@@ -125,9 +125,9 @@ class CAMP
 
   def getEntitlementParamsToInsert (params)
     results = []
-#    spdrResults = self.check(params) # WAS HERE BEFORE RGCL3-607, replaced by the next line
-    spdrResults = self.getEntitlements(params)
-    
+    spdrResults = self.check(params)
+#    spdrResults = self.getEntitlements(params) # the change for RGCL3-607, removed now
+
     spdrResults['entitlements'].each do |entitlement|
       results << Hash[
         'guid'=>params['guid'], 
