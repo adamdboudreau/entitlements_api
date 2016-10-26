@@ -46,9 +46,10 @@ module Request
       return true if (@httptype==:get) && (@type==:heartbeat || @type==:cql)
       begin @error_code = 4001; return "No connection to Cassandra" end unless Connection.instance.connection
       return true if (@httptype==:post) && (@type==:archive)
+      begin @error_code = 4004; return 'Missed guid' end unless @params['guid']
       @error_code = 4005
       return 'Incorrect brand' unless Cfg.config['brands'].include? @params['brand']
-      begin @error_code = 4004; return 'Incorrect guid' end unless @params['guid']
+      return 'Incorrect guid' unless /[a-z0-9-]{30,}/.match(@params['guid'])
       return 'Incorrect search_date' if @params['search_date'] && (@params['search_date'].to_i.to_s != @params['search_date'])
       return 'Incorrect start_date' if @params['start_date'] && (@params['start_date'].to_i.to_s != @params['start_date'])
       return 'Incorrect end_date' if @params['end_date'] && (@params['end_date'].to_i.to_s != @params['end_date'])
@@ -59,7 +60,7 @@ module Request
 
     def process
       begin
-        tc = ((@httptype==:get) && (@type!=:heartbeat)) ? Connection.instance.getTC(@params) : nil
+        tc = ((@error_code==0) && (@httptype==:get) && (@type!=:heartbeat)) ? Connection.instance.getTC(@params) : nil
         @response[:tc] = tc if tc
       rescue Exception => e
         $logger.error "AbstractRequest EXCEPTION with getTC: #{e.message}\nBacktrace: #{e.backtrace.inspect}"

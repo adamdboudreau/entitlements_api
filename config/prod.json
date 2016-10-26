@@ -20,7 +20,7 @@
                           "history_migration"       : "history_migration",
                           "entitlements_by_enddate" : "entitlements_by_enddate"
   },
-  "brands"             : ["gcl", "texture", "shomi"],
+  "brands"             : ["gcl", "texture", "snnow", "wwe"],
   "apiKeys"            : {
                            "prod123" : {
                              "description": "Sergey Skyba prod",
@@ -139,6 +139,10 @@
                            }
                          },
   "archiveLimitPerRun" : 250,
+  "s3": {
+    "bucket" : "dtces-cassandra-backups",
+    "backupFileFormat" : "prod-%Y-%m-%d-%H%M%S.csv"
+  },
   "campAPI" : {
     "url"                         : "https://camp.egslb.net.rogers.com/api/v2/nhlEntitlements/",
     "pemFile"                     : "./certificates/dtc_csr.pem",

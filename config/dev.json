@@ -21,7 +21,7 @@
                           "history_migration"       : "history_migration",
                           "entitlements_by_enddate" : "entitlements_by_enddate"
   },
-  "brands"             : ["gcl", "texture", "shomi"],
+  "brands"             : ["gcl", "texture", "snnow", "wwe"],
   "apiKeys"            : {
                            "dev123" : {
                              "description": "Sergey Skyba development",

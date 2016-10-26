@@ -7,10 +7,13 @@ class CAMP
     key = ENV['CAMP_KEY']
     $logger.debug "\nCAMP.check pkey size=#{key.to_s.size}\n"
     http = Net::HTTP.new(uri.host, uri.port)
+    $logger.debug "CAMP.check http object created\n"
     http.use_ssl = true
     http.ciphers = 'DEFAULT:!DH'
     http.cert = OpenSSL::X509::Certificate.new(pem)
+    $logger.debug "CAMP.check http.cert is ok\n"
     http.key = OpenSSL::PKey::RSA.new(key)
+    $logger.debug "CAMP.check http.key is ok\n"
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
 
     nAttempt = 0
@@ -49,14 +52,18 @@ class CAMP
   def getEntitlements (params)
     puts "\nCAMP.getEntitlements started with params=#{params}\n"
     uri = URI.parse(Cfg.config['campAPI']['url'] + params['guid'].strip)
+    puts "CAMP.getEntitlements uri=#{uri.inspect}\n"
     pem = File.read(Cfg.config['campAPI']['pemFile'])
     key = ENV['CAMP_KEY']
-    puts "\nCAMP.getEntitlements pkey size=#{key.to_s.size}\n"
+    puts "CAMP.getEntitlements pkey size=#{key.to_s.size}\n"
     http = Net::HTTP.new(uri.host, uri.port)
+    puts "CAMP.getEntitlements http object created\n"
     http.use_ssl = true
     http.ciphers = 'DEFAULT:!DH'
     http.cert = OpenSSL::X509::Certificate.new(pem)
+    puts "CAMP.getEntitlements http.cert is ok\n"
     http.key = OpenSSL::PKey::RSA.new(key)
+    puts "CAMP.getEntitlements http.key is ok\n"
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
 
     nAttempt = 0

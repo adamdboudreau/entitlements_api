@@ -1,4 +1,5 @@
 require 'csv'
+require 'aws-sdk'
 
 require './config/config.rb'
 require './lib/migration.rb'
@@ -236,7 +237,6 @@ task :check_batch, [:guid_position, :start_line] do |task, args|
     @connection.execute(cql).each do |ent_row|
       bEntitled = true if ent_row['start_date']<search_date && ent_row['end_date']>search_date
     end
-#    puts "Processing #{row[args[:guid_position].to_i]}"
     puts "Entitlement found for line #{nProcessed}: #{row[args[:guid_position].to_i]}" if bEntitled
     nEntitled += 1 if bEntitled
   end
@@ -280,13 +280,13 @@ end
 
 desc 'SPDR single call'
 task :spdr_call do
-  url = ENV['CAMP_CALL_URL']
-  abort "URL not found: #{url}" unless url
+  guid = ENV['GUID']
+  abort "Incorrect guid: #{guid}" unless guid
 
   pem = File.read(Cfg.config['campAPI']['pemFile'])
   key = ENV['CAMP_KEY']
 
-  uri = URI.parse(url)
+  uri = URI.parse(Cfg.config['campAPI']['url']+guid)
   puts "Trying URI: #{uri}"
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
@@ -325,4 +325,54 @@ task :guid_compare, [:guid1, :guid2] do |task, args|
   end
 
   puts "guid_compare task finished ok, #{nCounter} different records found"
+end
+
+desc 'Backup'
+task :backup do
+  sFileName = 'prod-2016-10-26-160003.csv' #Time.now.strftime(Cfg.config['s3']['backupFileFormat'])
+=begin
+#  sKeyspace = "#{Cfg.config['cassandraCluster']['keyspace']}."
+  sTableName = Cfg.config['tables']['entitlements']
+  @connection ||= Connection.instance.connection
+  nCounter = 0
+  puts "Backup rake task started with fileName=#{sFileName}, tableName=#{Cfg.config['tables']['entitlements']}"
+
+  File.open(sFileName, "w") do |f|
+    f.write "guid,brand,end_date,source,product,trace_id,start_date\n"
+    result  = @connection.execute("SELECT * FROM #{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements']}", page_size: 1000)
+    loop do
+      puts "last page? #{result.last_page?}"
+      puts "page size: #{result.size}"
+
+      result.each do |row|
+        f.write "#{row['guid']},#{row['brand']},#{row['end_date']},#{row['source']},#{row['product']},#{row['trace_id']},#{row['start_date']}\n"
+        nCounter += 1
+      end
+      puts "nCounter=#{nCounter}"
+
+      break if result.last_page?
+      result = result.next_page
+    end
+
+  end
+  puts "#{nCounter} records backuped at #{sFileName}"
+=end
+  puts "Trying to upload #{sFileName} as #{File.basename(sFileName)} onto bucket #{Cfg.config['s3']['bucket']} for region: #{ENV['AWS_REGION']}"
+  puts "API_KEY: #{ENV['AWS_ACCESS_KEY_ID']}"
+  puts "SECRET_KEY: #{ENV['AWS_SECRET_ACCESS_KEY']}"
+  Aws.config.update({
+    region: ENV['AWS_REGION'],
+    credentials: Aws::Credentials.new(ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'])
+  })
+  s3 = Aws::S3::Client.new
+  puts "Connected! buckets: #{s3.list_buckets.inspect}"
+##  obj = s3.bucket(Cfg.config['s3']['bucket']).object(ENV['AWS_ACCESS_KEY_ID'])
+  obj = s3.bucket(Cfg.config['s3']['bucket']).object(File.basename(sFileName))
+  obj.upload_file(sFileName)
+
+#  s3 = Aws::S3.new
+#  key = File.basename(sFileName)
+#  s3.buckets[Cfg.config['s3']['bucket']].objects[key].write(:file => sFileName)
+  puts "The file #{sFileName} has been successfully uploaded"
+  File.delete(sFileName)
 end
