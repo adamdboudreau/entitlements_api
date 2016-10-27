@@ -365,14 +365,31 @@ task :backup do
     credentials: Aws::Credentials.new(ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'])
   })
   s3 = Aws::S3::Client.new
-  puts "Connected! buckets: #{s3.list_buckets.inspect}"
-##  obj = s3.bucket(Cfg.config['s3']['bucket']).object(ENV['AWS_ACCESS_KEY_ID'])
-  obj = s3.bucket(Cfg.config['s3']['bucket']).object(File.basename(sFileName))
-  obj.upload_file(sFileName)
+  puts "Connected! buckets: #{s3.list_buckets.buckets.inspect}"
 
-#  s3 = Aws::S3.new
-#  key = File.basename(sFileName)
-#  s3.buckets[Cfg.config['s3']['bucket']].objects[key].write(:file => sFileName)
-  puts "The file #{sFileName} has been successfully uploaded"
+  S3 = Aws::S3::Resource.new(region: ENV['AWS_REGION'])
+  bucket = S3.bucket(Cfg.config['s3']['bucket'])
+  puts "bucket: #{bucket.inspect}"
+
+  obj = bucket.object(sFileName)
+  puts "obj: #{obj.inspect}"
+
+  obj.put(
+    acl: "public-read",
+    body: sFileName
+  )
+
+  @upload = Upload.new(
+    url: obj.public_url,
+    name: obj.key
+  )
+
+  #save the upload
+  if @upload.save
+    puts "The file #{sFileName} has been successfully uploaded"
+  else
+    puts "Error uploading file #{sFileName}"
+  end    
+
   File.delete(sFileName)
 end

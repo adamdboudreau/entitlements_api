@@ -73,6 +73,24 @@
                                "delete" : { "entitlements" : "2099-12-31 00:00:01" }
                              }
                            },
+                           "stgL9koH3lq1nD84sJa" : {
+                             "description": "Wali snnow - full access",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01",
+                                            "cql"          : "2099-12-31 00:00:01"
+                                          },
+                               "put"    : {
+                                            "entitlement" : "2099-12-31 00:00:01",
+                                            "tc"          : "2099-12-31 00:00:01"
+                                          },
+                               "post"   : { "archive" : "2099-12-31 00:00:01" },
+                               "delete" : { "entitlements" : "2099-12-31 00:00:01" }
+                             }
+                           },
                            "b9Hj71Lfp8kR6hu5" : {
                              "description": "Wali - full access",
                              "allowed": {
