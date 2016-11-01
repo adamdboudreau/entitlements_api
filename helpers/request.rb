@@ -22,12 +22,12 @@ module Request
       # for testing
 #      Connection.instance.close if @params['disconnect']
 
-      $logger.info "\nAbstractRequest.initialize finished with\ntype=#{type}\nparams=#{@params.to_json}\nhttptype=#{httptype}\nbypass_api_check=#{bypass_api_check}"
-      $logger.info "\nAbstractRequest.initialize finished with API key=#{@api_key}\nAPI key description: " + ((Cfg.config['apiKeys'][@api_key] && Cfg.config['apiKeys'][@api_key]['description']) ? Cfg.config['apiKeys'][@api_key]['description'] : '')
+      puts "AbstractRequest.initialize finished with\ntype=#{type}\nparams=#{@params.to_json}\nhttptype=#{httptype}\nbypass_api_check=#{bypass_api_check}"
+      puts "AbstractRequest.initialize finished with API key=#{@api_key}\nAPI key description: " + ((Cfg.config['apiKeys'][@api_key] && Cfg.config['apiKeys'][@api_key]['description']) ? Cfg.config['apiKeys'][@api_key]['description'] : '')
     end
 
     def validate
-      $logger.debug "\nAbstractRequest.validate started. httptype=#{@httptype}\n"
+      puts "AbstractRequest.validate started. httptype=#{@httptype}"
       begin @error_code = 4006; return "Incorrect http type: #{@httptype}" end unless Cfg.requestParameters[@httptype.to_s]
       begin @error_code = 4006; return "Incorrect request type: #{@type}" end unless Cfg.requestParameters[@httptype.to_s][@type.to_s]
 
@@ -49,7 +49,7 @@ module Request
       begin @error_code = 4004; return 'Missed guid' end unless @params['guid']
       @error_code = 4005
       return 'Incorrect brand' unless Cfg.config['brands'].include? @params['brand']
-      return 'Incorrect guid' unless /[a-z0-9-]{30,}/.match(@params['guid'])
+      return 'Incorrect guid' unless /[a-zA-Z0-9-]{25,100}/.match(@params['guid'])
       return 'Incorrect search_date' if @params['search_date'] && (@params['search_date'].to_i.to_s != @params['search_date'])
       return 'Incorrect start_date' if @params['start_date'] && (@params['start_date'].to_i.to_s != @params['start_date'])
       return 'Incorrect end_date' if @params['end_date'] && (@params['end_date'].to_i.to_s != @params['end_date'])
@@ -63,7 +63,7 @@ module Request
         tc = ((@error_code==0) && (@httptype==:get) && (@type!=:heartbeat)) ? Connection.instance.getTC(@params) : nil
         @response[:tc] = tc if tc
       rescue Exception => e
-        $logger.error "AbstractRequest EXCEPTION with getTC: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+        puts "AbstractRequest EXCEPTION with getTC: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
         @error_code = 5000 if @error_code==0
         @response[:success] = false
       end
@@ -78,7 +78,7 @@ module Request
       end
       @response[:error_code] = @error_code if @error_code>0
       @response[:processing_time_ms] = '%.03f' % ((Time.now.to_f - @start_time)*1000)
-      $logger.debug "\nRequest: /#{@type}/?" + URI.encode(@params.map{|k,v| "#{k}=#{v}"}.join("&")) + "\nResponse: #{@response.to_s}\n\n"
+      puts "Request: /#{@type}/?" + URI.encode(@params.map{|k,v| "#{k}=#{v}"}.join("&")) + "\nResponse: #{@response.to_s}\n"
 #      Connection.instance.connect if @params['disconnect']
       @response
     end
@@ -145,7 +145,7 @@ module Request
             end
             @response['updated'] = !(@response['created'] = (Connection.instance.putEntitlement(raParams)==0))
           rescue Exception => e
-            $logger.error "Entitlement EXCEPTION with putEntitlement: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+            puts "Entitlement EXCEPTION with putEntitlement: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
             @error_code = 5000
             @response = { success: false, message: 'Unknown error during creating/updating an entitlement' }
           end
@@ -204,7 +204,7 @@ module Request
           begin
             @response['deleted'] = Connection.instance.deleteEntitlements(@params)
           rescue Exception => e
-            $logger.error "Entitlements EXCEPTION with deleteEntitlements: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+            puts "Entitlements EXCEPTION with deleteEntitlements: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
             @error_code = 5000
             @response = { success: false, message: 'Unknown error during deleting' }
           end
@@ -215,7 +215,7 @@ module Request
             @response['entitlements'] = Connection.instance.getEntitlements(@params)
             @response['entitled'] = !(@response['entitlements'].empty? || (@response['entitlements'].count==1 && @response['entitlements'][0] && @response['entitlements'][0]["product"]=="gameplus"))
           rescue Exception => e
-            $logger.error "Entitlements EXCEPTION with getEntitlements: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+            puts "Entitlements EXCEPTION with getEntitlements: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
             @error_code = 5000
             @response = { success: false, entitled: true, entitlements: [] }
           end
@@ -249,7 +249,7 @@ module Request
           tc = Connection.instance.getTC(@params)
           return 'Too old tc_version to renew' if tc && (tc[:version].to_f > @params['tc_version'].to_f)
         rescue Exception => e
-          $logger.error "TC EXCEPTION with getEntitlements: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+          puts "TC EXCEPTION with getEntitlements: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
           @error_code = 5000
           return 'Error getting TC'
         end

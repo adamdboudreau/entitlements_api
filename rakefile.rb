@@ -1,13 +1,15 @@
 require 'csv'
 require 'aws-sdk'
+require 'zlib'
 
 require './config/config.rb'
 require './lib/migration.rb'
 
-$logger = (Cfg.config[:env]=='dev') ? Logger.new(Cfg.config['logFile'], 'daily') : Le.new(Cfg.config['logEntriesToken'])
+# $logger = (Cfg.config[:env]=='dev') ? Logger.new(Cfg.config['logFile'], 'daily') : Le.new(Cfg.config['logEntriesToken'])
+
+#######################################################################################
 
 desc 'create db'
-
 task :create do
   m = Migration.new
   cql = <<-KEYSPACE_CQL
@@ -35,6 +37,8 @@ task :migrate do
   migrate_all
 end
 
+#######################################################################################
+
 def migrate_all
   puts 'Running all migrations'
   puts Dir.glob("#{File.dirname(__FILE__)}/data/*.rb").inspect
@@ -52,11 +56,15 @@ def migrate_all
   end
 end
 
+#######################################################################################
+
 desc 'delete'
 task :delete do
   @connection ||= Connection.instance.connection
   @connection.execute("DROP KEYSPACE IF EXISTS #{Cfg.config['cassandraCluster']['keyspace']}")
 end
+
+#######################################################################################
 
 desc 'archive'
 task :archive, [:limit] do |task, args|
@@ -64,6 +72,8 @@ task :archive, [:limit] do |task, args|
   nRecordsArchived = Connection.instance.postArchive args[:limit]
   puts (nRecordsArchived<0) ? 'Error happened during archiving' : "Archiving rake task finished successfully, #{nRecordsArchived} records have been archived"
 end
+
+#######################################################################################
 
 desc 'Lowercase brand, source, product'
 task :lowercase do
@@ -93,12 +103,16 @@ task :lowercase do
   puts "Lowercase procedure finished: #{nProcessed} records processed, #{nPassed} records passed"
 end
 
+#######################################################################################
+
 desc 'Delete entitlements migrated from Zuora'
 task :delete_zuora do |task, args|
   puts 'Zuora cleanup'
   nRecordsDeleted = Connection.instance.deleteZuora
   puts (nRecordsDeleted<0) ? 'Error happened during zuora deleting' : "Delete zuora entitlements task finished successfully, #{nRecordsDeleted} records have been deleted"
 end
+
+#######################################################################################
 
 desc 'Migrate entitlements from Zuora'
 task :zuora, [:rateplan, :guid, :billing, :autorenew, :subID] do |task, args|
@@ -147,6 +161,8 @@ task :zuora, [:rateplan, :guid, :billing, :autorenew, :subID] do |task, args|
   puts "#{nCounter} records imported into #{sFileName}"
 end
 
+#######################################################################################
+
 desc 'Delete entitlements making backup first'
 task :delete_batch, [:guid_position, :brand] do |task, args|
   puts "Batch deleting started"
@@ -180,6 +196,8 @@ task :delete_batch, [:guid_position, :brand] do |task, args|
   puts "#{nCounter} records deleted."
   puts "All the records are backuped at #{sFileName}"
 end
+
+#######################################################################################
 
 desc 'Update entitlements'
 task :update_batch do # accepts csv file with guid, old_trace_id, new_trace_id structure
@@ -218,6 +236,8 @@ task :update_batch do # accepts csv file with guid, old_trace_id, new_trace_id s
   puts "#{nCounter} records pseudo updated"
 end
 
+#######################################################################################
+
 desc 'Check entitlements as a batch'
 task :check_batch, [:guid_position, :start_line] do |task, args|
   csvFile = ENV['CSV']
@@ -242,6 +262,8 @@ task :check_batch, [:guid_position, :start_line] do |task, args|
   end
   puts "check_batch finished, #{nProcessed} records processed, #{nEntitled} entitlements found"
 end
+
+#######################################################################################
 
 desc 'SPDR run'
 task :spdr do
@@ -278,6 +300,8 @@ task :spdr do
   end
 end
 
+#######################################################################################
+
 desc 'SPDR single call'
 task :spdr_call do
   guid = ENV['GUID']
@@ -296,6 +320,8 @@ task :spdr_call do
   http.verify_mode = OpenSSL::SSL::VERIFY_NONE
   puts http.request(Net::HTTP::Get.new(uri.request_uri)).body
 end
+
+#######################################################################################
 
 desc 'Compare GUIDs in from 2 CSV files'
 task :guid_compare, [:guid1, :guid2] do |task, args|
@@ -327,10 +353,12 @@ task :guid_compare, [:guid1, :guid2] do |task, args|
   puts "guid_compare task finished ok, #{nCounter} different records found"
 end
 
+#######################################################################################
+
 desc 'Backup'
 task :backup do
-  sFileName = 'prod-2016-10-26-160003.csv' #Time.now.strftime(Cfg.config['s3']['backupFileFormat'])
-=begin
+  sFileName = Time.now.strftime(Cfg.config['s3']['backupFileFormat'])
+
 #  sKeyspace = "#{Cfg.config['cassandraCluster']['keyspace']}."
   sTableName = Cfg.config['tables']['entitlements']
   @connection ||= Connection.instance.connection
@@ -341,8 +369,6 @@ task :backup do
     f.write "guid,brand,end_date,source,product,trace_id,start_date\n"
     result  = @connection.execute("SELECT * FROM #{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements']}", page_size: 1000)
     loop do
-      puts "last page? #{result.last_page?}"
-      puts "page size: #{result.size}"
 
       result.each do |row|
         f.write "#{row['guid']},#{row['brand']},#{row['end_date']},#{row['source']},#{row['product']},#{row['trace_id']},#{row['start_date']}\n"
@@ -356,40 +382,86 @@ task :backup do
 
   end
   puts "#{nCounter} records backuped at #{sFileName}"
-=end
+
   puts "Trying to upload #{sFileName} as #{File.basename(sFileName)} onto bucket #{Cfg.config['s3']['bucket']} for region: #{ENV['AWS_REGION']}"
-  puts "API_KEY: #{ENV['AWS_ACCESS_KEY_ID']}"
-  puts "SECRET_KEY: #{ENV['AWS_SECRET_ACCESS_KEY']}"
+
   Aws.config.update({
     region: ENV['AWS_REGION'],
     credentials: Aws::Credentials.new(ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'])
   })
-  s3 = Aws::S3::Client.new
-  puts "Connected! buckets: #{s3.list_buckets.buckets.inspect}"
 
   S3 = Aws::S3::Resource.new(region: ENV['AWS_REGION'])
   bucket = S3.bucket(Cfg.config['s3']['bucket'])
   puts "bucket: #{bucket.inspect}"
 
   obj = bucket.object(sFileName)
-  puts "obj: #{obj.inspect}"
 
-  obj.put(
-    acl: "public-read",
-    body: sFileName
-  )
+  File.open(sFileName, 'rb') do |file|
+    obj.put(body: file)
+  end
 
-  @upload = Upload.new(
-    url: obj.public_url,
-    name: obj.key
-  )
-
-  #save the upload
-  if @upload.save
-    puts "The file #{sFileName} has been successfully uploaded"
-  else
-    puts "Error uploading file #{sFileName}"
-  end    
-
+  puts "Deleting file #{sFileName}"
   File.delete(sFileName)
+  puts "Backup task finished ok"
 end
+
+#######################################################################################
+=begin
+desc 'Import records to db'
+task :import, [:guid, :brand, :product, :source, :trace_id, :end_date, :trace_id_suffix] do |task, args|
+  now = Time.now.to_i
+  puts "Data import, task=#{task}, args=#{args}"
+  abort "Incorrect parameters: please use rake import[:guid, :brand, :product, :source, :trace_id, :end_date, :trace_id_suffix] format" unless args[:trace_id_suffix]
+  csvFile = ENV['IMPORT_CSV']
+  abort "File not found: #{csvFile}" unless csvFile && File.file?(csvFile)
+  table_entitlements = "#{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements']}"
+  @connection ||= Connection.instance.connection
+  nTransaction = 200
+  nCounter = 0
+  nTotal = 0
+
+  CSV.foreach(csvFile) do |row|
+    batch = @connection.batch do |batch|
+      entitlements.each do |row|
+        cql = "DELETE FROM #{@table_entitlements} WHERE guid=? AND brand=? AND source=? AND product=? AND trace_id=? AND end_date=?"
+        args = Array[row['guid'],row['brand'],row['source'],row['product'],row['trace_id'],row['end_date']*1000]
+        puts "Connection.moveEntitlementsToArchive, adding to batch: CQL=#{cql} with arguments: #{args}}\n"
+        batch.add(cql, arguments: args)
+        cql = "UPDATE #{@table_history} SET archive_type='#{msg}',start_date=? WHERE guid=? AND brand=? AND source=? AND product=? AND trace_id=? AND end_date=? AND archive_date=toTimestamp(NOW())"
+        args = Array[row['start_date']*1000,row['guid'],row['brand'],row['source'],row['product'],row['trace_id'],row['end_date']*1000]
+        puts "Connection.moveEntitlementsToArchive, adding to batch: CQL=#{cql} with arguments: #{args}}\n"
+        batch.add(cql, arguments: args)
+        result += 1
+      end
+    end
+    @connection.execute(batch) if result>0
+
+
+      billing = (args[:billing].to_i < 0 ) ? 'direct bill' : row[args[:billing].to_i]
+      if billing && (billing.strip.downcase=='direct bill') then
+        begin
+          rateplan = (args[:rateplan].to_i < 0 ) ? '' : row[args[:rateplan].to_i].strip.downcase
+          guid = row[args[:guid].to_i].strip
+          subID = row[args[:subID].to_i].strip
+          autorenew = (args[:autorenew].to_i < 0 ) ? 'true' : row[args[:autorenew].to_i].strip.downcase
+          if (rateplan.include? 'french') then
+            f.write "#{sLineFrench.gsub('<GUID>',guid).gsub('<subID>',subID)}\n"
+          elsif ((rateplan.include? 'monthly') && (autorenew=='true')) then
+            f.write "#{sLineMonthly.gsub('<GUID>',guid).gsub('<subID>',subID)}\n"
+          elsif (autorenew=='true') then
+            f.write "#{sLineEB1.gsub('<GUID>',guid).gsub('<subID>',subID)}\n"
+            #f.write "#{sLineEB2.gsub('<GUID>',guid).gsub('<subID>',subID)}\n"
+          else
+            puts "Skipping line #{nCounter}: #{row}"
+          end
+        rescue Exception => e
+          puts "Skipped, error happened on line #{nCounter}: #{e.message}"
+        end
+      end
+      nCounter += 1
+    end
+  end
+  puts "#{nCounter} records imported into #{sFileName}"
+end
+
+=end

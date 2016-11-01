@@ -1,19 +1,19 @@
 class CAMP
 
   def check (params)
-    $logger.debug "\nCAMP.check started with params=#{params}\n"
+    puts "CAMP.check started with params=#{params}"
     uri = URI.parse(Cfg.config['campAPI']['url'] + params['guid'].strip)
     pem = File.read(Cfg.config['campAPI']['pemFile'])
     key = ENV['CAMP_KEY']
-    $logger.debug "\nCAMP.check pkey size=#{key.to_s.size}\n"
+    puts "CAMP.check pkey size=#{key.to_s.size}"
     http = Net::HTTP.new(uri.host, uri.port)
-    $logger.debug "CAMP.check http object created\n"
+    puts "CAMP.check http object created"
     http.use_ssl = true
     http.ciphers = 'DEFAULT:!DH'
     http.cert = OpenSSL::X509::Certificate.new(pem)
-    $logger.debug "CAMP.check http.cert is ok\n"
+    puts "CAMP.check http.cert is ok"
     http.key = OpenSSL::PKey::RSA.new(key)
-    $logger.debug "CAMP.check http.key is ok\n"
+    puts "CAMP.check http.key is ok"
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
 
     nAttempt = 0
@@ -22,21 +22,21 @@ class CAMP
     begin
       result = nil
       nAttempt += 1
-      $logger.debug "\nCAMP.check going to connect to #{uri}\n"
+      puts "CAMP.check going to connect to #{uri}"
       response = Hash.from_xml(params['spdrResponse'] ? params['spdrResponse'] : http.request(Net::HTTP::Get.new(uri.request_uri)).body)
-      $logger.debug "\nCAMP.check params[spdrResponse] found, taking it as a response: #{params['spdrResponse']}\n" if params['spdrResponse']
-      $logger.debug "\nCAMP.check pinging SPDR, attempt #{nAttempt}, response=#{response}\n" unless params['spdrResponse']
+      puts "CAMP.check params[spdrResponse] found, taking it as a response: #{params['spdrResponse']}" if params['spdrResponse']
+      puts "CAMP.check pinging SPDR, attempt #{nAttempt}, response=#{response}" unless params['spdrResponse']
 
       Cfg.config['campAPI']['rules'].clone.each do |rule|
-        $logger.debug "\nCAMP.check checking rule: #{rule}\n"
+        puts "CAMP.check checking rule: #{rule}"
         unless result
           path, value = rule[0].split('=')
           result = rule[1].clone if (getValue(response,path) == value)
-          $logger.debug "\nCAMP.check during checking the rule, result=#{result}\n"
+          puts "CAMP.check during checking the rule, result=#{result}"
         end
       end
       result = Cfg.config['campAPI']['ruleDefault'].clone unless result
-      $logger.debug "\nCAMP.check pinging SPDR, attempt #{nAttempt}, result=#{result}\n"
+      puts "CAMP.check pinging SPDR, attempt #{nAttempt}, result=#{result}"
     end until nAttempt>result['redo']
 
     entitlementName = getValue(response, Cfg.config['campAPI']['entitlementPath'])
@@ -45,7 +45,7 @@ class CAMP
     if (!result['entitlements']) || (result['entitlements'].empty?)
       result['entitlements'] = (entitlementName && Cfg.config['campAPI']['entitlementsMap'][entitlementName]) ? Cfg.config['campAPI']['entitlementsMap'][entitlementName].clone : Cfg.config['campAPI']['entitlementsMap']['default'].clone
     end
-    $logger.debug "\nCAMP.check finished with #{result}"
+    puts "CAMP.check finished with #{result}"
     result
   end
 

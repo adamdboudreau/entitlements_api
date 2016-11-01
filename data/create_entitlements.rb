@@ -13,7 +13,7 @@ class CreateEntitlements < Migration
         PRIMARY KEY ((guid, brand), end_date, source, product, trace_id)
       ) WITH compression = { 'sstable_compression' : 'LZ4Compressor' };
     TABLE_CQL
-    $logger.debug "CreateEntitlements.Migration, running CQL1: #{cql}\n"
+    puts "CreateEntitlements.Migration, running CQL1: #{cql}"
     execute(cql)
 
     cql = <<-TABLE_CQL
@@ -30,7 +30,7 @@ class CreateEntitlements < Migration
         PRIMARY KEY ((guid, brand), end_date, source, product, trace_id, archive_date)
       ) WITH compression = { 'sstable_compression' : 'LZ4Compressor' };
     TABLE_CQL
-    $logger.debug "CreateEntitlements.Migration, running CQL2: #{cql}\n"
+    puts "CreateEntitlements.Migration, running CQL2: #{cql}"
     execute(cql)
 
     cql = <<-TABLE_CQL
@@ -42,7 +42,7 @@ class CreateEntitlements < Migration
         PRIMARY KEY (guid, brand)
       ) WITH compression = { 'sstable_compression' : 'LZ4Compressor' };
     TABLE_CQL
-    $logger.debug "CreateEntitlements.Migration, running CQL3: #{cql}\n"
+    puts "CreateEntitlements.Migration, running CQL3: #{cql}"
     execute(cql)
 
     cql = "CREATE MATERIALIZED VIEW #{Cfg.config['tables']['entitlements_by_enddate']}" +
@@ -51,12 +51,12 @@ class CreateEntitlements < Migration
 "AND source IS NOT NULL AND product IS NOT NULL AND trace_id IS NOT NULL " +
 " PRIMARY KEY ((guid, brand, source, product, trace_id), end_date) " 
 #{}"WITH CLUSTERING ORDER BY (end_date ASC)"
-      $logger.debug "CreateEntitlements.Migration, running CQL4: #{cql}\n"
+      puts "CreateEntitlements.Migration, running CQL4: #{cql}"
       execute(cql)
-      $logger.debug "CreateEntitlements.Migration finished ok"
+      puts "CreateEntitlements.Migration finished ok"
     rescue Exception => e  
-      $logger.debug "CreateEntitlements.Migration EXCEPTION: #{e.message}"
-      $logger.debug "CreateEntitlements.Migration backtrace: #{e.backtrace.inspect}"
+      puts "CreateEntitlements.Migration EXCEPTION: #{e.message}"
+      puts "CreateEntitlements.Migration backtrace: #{e.backtrace.inspect}"
     end  
   end
   def down
