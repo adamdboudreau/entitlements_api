@@ -363,7 +363,7 @@ task :backup do
   sTableName = Cfg.config['tables']['entitlements']
   @connection ||= Connection.instance.connection
   nCounter = 0
-  puts "Backup rake task started with fileName=#{sFileName}, tableName=#{Cfg.config['tables']['entitlements']}"
+  puts "Backup rake task started with fileName=#{sFileName}, tableName=#{sTableName}"
 
   File.open(sFileName, "w") do |f|
     f.write "guid,brand,end_date,source,product,trace_id,start_date\n"
@@ -420,7 +420,31 @@ task :import, [:guid, :brand, :product, :source, :trace_id, :end_date, :trace_id
   nCounter = 0
   nTotal = 0
 
+  cql = "UPDATE #{table_entitlements} SET start_date=? WHERE guid=? AND brand=? AND source=? AND product=? AND trace_id=? AND end_date=?"
+
   CSV.foreach(csvFile) do |row|
+
+    batch = @connection.batch
+
+
+cluster = Cassandra.cluster
+session = cluster.connect("simplex")
+
+statement = session.prepare("INSERT INTO cas_batch (k, v) VALUES (?, ?) IF NOT EXISTS")
+batch = session.batch
+
+batch.add("INSERT INTO cas_batch (k, v) VALUES ('key1', 0)")
+batch.add(statement, arguments: ["key1", 1])
+batch.add(statement, arguments: ["key1", 2])
+
+results =  session.execute(batch)
+rows = results.first
+puts "batch applied? #{rows["[applied]"]}"
+
+results =  session.execute(batch)
+
+
+
     batch = @connection.batch do |batch|
       entitlements.each do |row|
         cql = "DELETE FROM #{@table_entitlements} WHERE guid=? AND brand=? AND source=? AND product=? AND trace_id=? AND end_date=?"
@@ -463,5 +487,4 @@ task :import, [:guid, :brand, :product, :source, :trace_id, :end_date, :trace_id
   end
   puts "#{nCounter} records imported into #{sFileName}"
 end
-
 =end
