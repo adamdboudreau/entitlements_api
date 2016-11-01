@@ -193,7 +193,7 @@
   "archiveLimitPerRun" : 250,
   "s3": {
     "bucket" : "dtces-cassandra-backups",
-    "backupFileFormat" : "prod-%Y-%m-%d-%H%M%S.csv"
+    "backupFileFormat" : "stg-%Y-%m-%d-%H%M%S.csv"
   },
   "campAPI" : {
     "url"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2-lab3/nhlEntitlements/",
