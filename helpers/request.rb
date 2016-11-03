@@ -49,7 +49,8 @@ module Request
       begin @error_code = 4004; return 'Missed guid' end unless @params['guid']
       @error_code = 4005
       return 'Incorrect brand' unless Cfg.config['brands'].include? @params['brand']
-      return 'Incorrect guid' unless /[a-zA-Z0-9-]{25,100}/.match(@params['guid'])
+      return 'Incorrect guid' if /[^\w\-]/.match(@params['guid'])
+      return 'Incorrect guid' if (@params['guid'].length<25) || (@params['guid'].length>100)
       return 'Incorrect search_date' if @params['search_date'] && (@params['search_date'].to_i.to_s != @params['search_date'])
       return 'Incorrect start_date' if @params['start_date'] && (@params['start_date'].to_i.to_s != @params['start_date'])
       return 'Incorrect end_date' if @params['end_date'] && (@params['end_date'].to_i.to_s != @params['end_date'])

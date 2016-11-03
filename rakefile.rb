@@ -358,18 +358,15 @@ end
 desc 'Backup'
 task :backup do
   sFileName = Time.now.strftime(Cfg.config['s3']['backupFileFormat'])
-
-#  sKeyspace = "#{Cfg.config['cassandraCluster']['keyspace']}."
-  sTableName = Cfg.config['tables']['entitlements']
+  sTableName = Cfg.config['cassandraCluster']['keyspace']+'.'+Cfg.config['tables']['entitlements']
   @connection ||= Connection.instance.connection
   nCounter = 0
   puts "Backup rake task started with fileName=#{sFileName}, tableName=#{sTableName}"
 
   File.open(sFileName, "w") do |f|
     f.write "guid,brand,end_date,source,product,trace_id,start_date\n"
-    result  = @connection.execute("SELECT * FROM #{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements']}", page_size: 1000)
+    result  = @connection.execute("SELECT * FROM #{sTableName}", page_size: 1000)
     loop do
-
       result.each do |row|
         f.write "#{row['guid']},#{row['brand']},#{row['end_date']},#{row['source']},#{row['product']},#{row['trace_id']},#{row['start_date']}\n"
         nCounter += 1
@@ -379,10 +376,8 @@ task :backup do
       break if result.last_page?
       result = result.next_page
     end
-
   end
   puts "#{nCounter} records backuped at #{sFileName}"
-
   puts "Trying to upload #{sFileName} as #{File.basename(sFileName)} onto bucket #{Cfg.config['s3']['bucket']} for region: #{ENV['AWS_REGION']}"
 
   Aws.config.update({
@@ -406,85 +401,49 @@ task :backup do
 end
 
 #######################################################################################
-=begin
+
 desc 'Import records to db'
-task :import, [:guid, :brand, :product, :source, :trace_id, :end_date, :trace_id_suffix] do |task, args|
-  now = Time.now.to_i
-  puts "Data import, task=#{task}, args=#{args}"
-  abort "Incorrect parameters: please use rake import[:guid, :brand, :product, :source, :trace_id, :end_date, :trace_id_suffix] format" unless args[:trace_id_suffix]
+task :import do
+  now = Time.now.to_i * 1000
   csvFile = ENV['IMPORT_CSV']
   abort "File not found: #{csvFile}" unless csvFile && File.file?(csvFile)
-  table_entitlements = "#{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements']}"
-  @connection ||= Connection.instance.connection
-  nTransaction = 200
-  nCounter = 0
   nTotal = 0
+  sTableName = Cfg.config['cassandraCluster']['keyspace']+'.'+Cfg.config['tables']['entitlements']
+  @connection ||= Connection.instance.connection
+  cql = "INSERT INTO #{sTableName} (guid, brand, end_date, source, product, trace_id, start_date) VALUES (?,?,?,?,?,?,?)"
 
-  cql = "UPDATE #{table_entitlements} SET start_date=? WHERE guid=? AND brand=? AND source=? AND product=? AND trace_id=? AND end_date=?"
+  raRows = []
 
   CSV.foreach(csvFile) do |row|
-
-    batch = @connection.batch
-
-
-cluster = Cassandra.cluster
-session = cluster.connect("simplex")
-
-statement = session.prepare("INSERT INTO cas_batch (k, v) VALUES (?, ?) IF NOT EXISTS")
-batch = session.batch
-
-batch.add("INSERT INTO cas_batch (k, v) VALUES ('key1', 0)")
-batch.add(statement, arguments: ["key1", 1])
-batch.add(statement, arguments: ["key1", 2])
-
-results =  session.execute(batch)
-rows = results.first
-puts "batch applied? #{rows["[applied]"]}"
-
-results =  session.execute(batch)
-
-
-
-    batch = @connection.batch do |batch|
-      entitlements.each do |row|
-        cql = "DELETE FROM #{@table_entitlements} WHERE guid=? AND brand=? AND source=? AND product=? AND trace_id=? AND end_date=?"
-        args = Array[row['guid'],row['brand'],row['source'],row['product'],row['trace_id'],row['end_date']*1000]
-        puts "Connection.moveEntitlementsToArchive, adding to batch: CQL=#{cql} with arguments: #{args}}\n"
-        batch.add(cql, arguments: args)
-        cql = "UPDATE #{@table_history} SET archive_type='#{msg}',start_date=? WHERE guid=? AND brand=? AND source=? AND product=? AND trace_id=? AND end_date=? AND archive_date=toTimestamp(NOW())"
-        args = Array[row['start_date']*1000,row['guid'],row['brand'],row['source'],row['product'],row['trace_id'],row['end_date']*1000]
-        puts "Connection.moveEntitlementsToArchive, adding to batch: CQL=#{cql} with arguments: #{args}}\n"
-        batch.add(cql, arguments: args)
-        result += 1
-      end
-    end
-    @connection.execute(batch) if result>0
-
-
-      billing = (args[:billing].to_i < 0 ) ? 'direct bill' : row[args[:billing].to_i]
-      if billing && (billing.strip.downcase=='direct bill') then
-        begin
-          rateplan = (args[:rateplan].to_i < 0 ) ? '' : row[args[:rateplan].to_i].strip.downcase
-          guid = row[args[:guid].to_i].strip
-          subID = row[args[:subID].to_i].strip
-          autorenew = (args[:autorenew].to_i < 0 ) ? 'true' : row[args[:autorenew].to_i].strip.downcase
-          if (rateplan.include? 'french') then
-            f.write "#{sLineFrench.gsub('<GUID>',guid).gsub('<subID>',subID)}\n"
-          elsif ((rateplan.include? 'monthly') && (autorenew=='true')) then
-            f.write "#{sLineMonthly.gsub('<GUID>',guid).gsub('<subID>',subID)}\n"
-          elsif (autorenew=='true') then
-            f.write "#{sLineEB1.gsub('<GUID>',guid).gsub('<subID>',subID)}\n"
-            #f.write "#{sLineEB2.gsub('<GUID>',guid).gsub('<subID>',subID)}\n"
-          else
-            puts "Skipping line #{nCounter}: #{row}"
-          end
-        rescue Exception => e
-          puts "Skipped, error happened on line #{nCounter}: #{e.message}"
+    raRows << row
+    if raRows.length>99
+      batch = @connection.batch do |batch|
+        raRows.each do |row|
+          batch.add("INSERT INTO #{sTableName} (guid, brand, end_date, source, product, trace_id, start_date) VALUES (?,'gcl',7978684768000,'crm','fullgcl','Imported from CRM',?)", 
+            arguments: Array[row[0]+'-'+now.to_s+'-'+nTotal.to_s,now])
+          nTotal += 1
+          batch.add("INSERT INTO #{sTableName} (guid, brand, end_date, source, product, trace_id, start_date) VALUES (?,'gcl',7978684768000,'crm','gameplus','Imported from CRM',?)", 
+            arguments: Array[row[0]+'-'+now.to_s+'-'+nTotal.to_s,now])
+          nTotal += 1
         end
       end
-      nCounter += 1
+      @connection.execute(batch)
+      raRows = []
+      puts "Processed: #{nTotal}"
     end
   end
-  puts "#{nCounter} records imported into #{sFileName}"
+  if raRows.length>0
+    batch = @connection.batch do |batch|
+      raRows.each do |row|
+        batch.add("INSERT INTO #{sTableName} (guid, brand, end_date, source, product, trace_id, start_date) VALUES (?,'gcl',7978684768000,'crm','fullgcl','Imported from CRM',?)", 
+            arguments: Array[row[0]+'-'+now.to_s+'-'+nTotal.to_s,now])
+        nTotal += 1
+        batch.add("INSERT INTO #{sTableName} (guid, brand, end_date, source, product, trace_id, start_date) VALUES (?,'gcl',7978684768000,'crm','gameplus','Imported from CRM',?)", 
+            arguments: Array[row[0]+'-'+now.to_s+'-'+nTotal.to_s,now])
+        nTotal += 1
+      end
+    end
+    @connection.execute(batch)
+  end
+  puts "Importing finished with #{nTotal} records inserted, processed by #{Time.now.to_i-(now/1000)} seconds"
 end
-=end
