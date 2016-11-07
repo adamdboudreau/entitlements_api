@@ -53,6 +53,10 @@ class Cfg
     end
   end 
 
+  def self.isEntitlementAddon(entitlement)
+    @config && @config['entitlementAddons'] && (@config['entitlementAddons'].include? entitlement)
+  end
+
   def self.config
     @config.clone
   end

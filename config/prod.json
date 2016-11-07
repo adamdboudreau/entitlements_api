@@ -1,7 +1,4 @@
 {
-  "logFile"            : "./logs/entitlements.log",
-  "logEntriesToken"    : "a9fe7059-be00-4e3f-8e0a-d5fc123ccaeb",
-  "adminEmail"         : "sskyba@gmail.com",
   "cassandraCluster"   : {
                           "hosts"             : [ "52.4.161.156", "52.203.144.117", "52.205.73.76" ],
                           "port"              : 9142,
@@ -21,6 +18,7 @@
                           "entitlements_by_enddate" : "entitlements_by_enddate"
   },
   "brands"             : ["gcl", "texture", "snnow", "wwe"],
+  "entitlementAddons"  : ["gameplus"],
   "apiKeys"            : {
                            "prod123" : {
                              "description": "Sergey Skyba prod",
@@ -158,7 +156,7 @@
   "archiveLimitPerRun" : 250,
   "s3": {
     "bucket" : "dtces-cassandra-backups",
-    "backupFileFormat" : "prod-%Y-%m-%d-%H%M%S.csv"
+    "backupFileFormat" : "prod-%%table%%-%Y-%m-%d-%H%M%S.csv"
   },
   "campAPI" : {
     "url"                         : "https://camp.egslb.net.rogers.com/api/v2/nhlEntitlements/",

@@ -1,11 +1,9 @@
 require 'csv'
 require 'aws-sdk'
-require 'zlib'
+require 'zip'
 
 require './config/config.rb'
 require './lib/migration.rb'
-
-# $logger = (Cfg.config[:env]=='dev') ? Logger.new(Cfg.config['logFile'], 'daily') : Le.new(Cfg.config['logEntriesToken'])
 
 #######################################################################################
 
@@ -356,29 +354,41 @@ end
 #######################################################################################
 
 desc 'Backup'
-task :backup do
-  sFileName = Time.now.strftime(Cfg.config['s3']['backupFileFormat'])
-  sTableName = Cfg.config['cassandraCluster']['keyspace']+'.'+Cfg.config['tables']['entitlements']
+task :backup, [:table_name] do |task, args|
+  sTableName = args[:table_name] || Cfg.config['tables']['entitlements']
+  sFileName = Time.now.strftime(Cfg.config['s3']['backupFileFormat'].sub('%%table%%',sTableName))
+  sZipFileName = "#{sFileName}.zip"
+  sTableName = Cfg.config['cassandraCluster']['keyspace'] + '.' + sTableName
   @connection ||= Connection.instance.connection
   nCounter = 0
   puts "Backup rake task started with fileName=#{sFileName}, tableName=#{sTableName}"
 
   File.open(sFileName, "w") do |f|
-    f.write "guid,brand,end_date,source,product,trace_id,start_date\n"
+    f.write (args[:table_name] ? "guid,brand,tc_acceptance_date,tc_version\n" : "guid,brand,end_date,source,product,trace_id,start_date\n")
     result  = @connection.execute("SELECT * FROM #{sTableName}", page_size: 1000)
     loop do
       result.each do |row|
-        f.write "#{row['guid']},#{row['brand']},#{row['end_date']},#{row['source']},#{row['product']},#{row['trace_id']},#{row['start_date']}\n"
+        if args[:table_name]
+          f.write "#{row['guid']},#{row['brand']},#{row['tc_acceptance_date']},#{row['tc_version']}\n"
+        else
+          f.write "#{row['guid']},#{row['brand']},#{row['end_date']},#{row['source']},#{row['product']},#{row['trace_id']},#{row['start_date']}\n"
+        end
         nCounter += 1
       end
-      puts "nCounter=#{nCounter}"
+      puts "Processed #{nCounter} records"
 
       break if result.last_page?
       result = result.next_page
     end
   end
-  puts "#{nCounter} records backuped at #{sFileName}"
-  puts "Trying to upload #{sFileName} as #{File.basename(sFileName)} onto bucket #{Cfg.config['s3']['bucket']} for region: #{ENV['AWS_REGION']}"
+  puts "#{nCounter} records backuped at #{sFileName}, start zipping"
+
+  Zip::File.open(sZipFileName, Zip::File::CREATE) do |zipfile|
+    zipfile.add(sFileName, sFileName)
+  end
+  puts "#{sFileName} zipped to #{sZipFileName}"
+
+  puts "Trying to upload #{sZipFileName} as #{File.basename(sZipFileName)} onto bucket #{Cfg.config['s3']['bucket']} for region: #{ENV['AWS_REGION']}"
 
   Aws.config.update({
     region: ENV['AWS_REGION'],
@@ -389,13 +399,14 @@ task :backup do
   bucket = S3.bucket(Cfg.config['s3']['bucket'])
   puts "bucket: #{bucket.inspect}"
 
-  obj = bucket.object(sFileName)
+  obj = bucket.object(sZipFileName)
 
-  File.open(sFileName, 'rb') do |file|
+  File.open(sZipFileName, 'rb') do |file|
     obj.put(body: file)
   end
 
-  puts "Deleting file #{sFileName}"
+  puts "Deleting files #{sFileName} and #{sZipFileName}"
+  File.delete(sZipFileName)
   File.delete(sFileName)
   puts "Backup task finished ok"
 end

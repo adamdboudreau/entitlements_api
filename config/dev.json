@@ -1,7 +1,4 @@
 {
-  "logFile"            : "./logs/entitlements.log",
-  "logEntriesToken"    : "a20c4669-a5d5-47aa-8269-2753c8863e24",
-  "adminEmail"         : "sskyba@gmail.com",
   "cassandraCluster"   : {
                           "hosts"             : [ "52.4.161.156", "52.203.144.117", "52.205.73.76" ],
                           "port"              : 9142,
@@ -22,6 +19,7 @@
                           "entitlements_by_enddate" : "entitlements_by_enddate"
   },
   "brands"             : ["gcl", "texture", "snnow", "wwe"],
+  "entitlementAddons"  : ["gameplus"],
   "apiKeys"            : {
                            "dev123" : {
                              "description": "Sergey Skyba development",

@@ -143,7 +143,7 @@ class CAMP
         'source'=>spdrResults['source'], 
         'trace_id'=>params['guid'],
         'start_date'=>Time.now.to_i.to_s,
-        'end_date'=>(entitlement=='gameplus') ? '1504137600' : (Time.now + 60*Cfg.config['campAPI'][spdrResults['provisionTime']]).to_i.to_s
+        'end_date'=>Cfg.isEntitlementAddon(entitlement) ? '1504137600' : (Time.now + 60*Cfg.config['campAPI'][spdrResults['provisionTime']]).to_i.to_s
       ]
     end if spdrResults['entitled']
     results

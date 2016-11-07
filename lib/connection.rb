@@ -22,7 +22,7 @@ class Connection
       @connection = Cassandra.cluster(cluster).connect
       puts "Connection.initialize: connected to Cassandra OK!"
     rescue Exception => e
-      puts "Connection.initialize EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+      puts "ERROR! Connection.initialize EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
     end
   end
 
@@ -77,7 +77,7 @@ class Connection
     end
 
 # comment out to disable SPDR checking
-    if (check_spdr && result.empty?) # ping SPDR if no entitlements found
+    if (check_spdr && (result.empty? || (result.count==1 && Cfg.isEntitlementAddon(result[0])))) # ping SPDR if no entitlements found
       puts 'Connection.getEntitlements, checking entitlements at SPDR to insert them to Cassandra'
       putEntitlement CAMP.new.getEntitlementParamsToInsert(params), false
       return Connection.instance.getEntitlements(params, exclude_future_entitlements, false)
@@ -217,7 +217,7 @@ class Connection
       end
       nDeleted
     rescue Exception => e
-      puts "Connection.deleteZuora EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+      puts "ERROR! Connection.deleteZuora EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
       -1
     end  
   end

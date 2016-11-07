@@ -6,12 +6,12 @@ GEM
       i18n (~> 0.7)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
-    aws-sdk (2.6.14)
-      aws-sdk-resources (= 2.6.14)
-    aws-sdk-core (2.6.14)
+    aws-sdk (2.6.18)
+      aws-sdk-resources (= 2.6.18)
+    aws-sdk-core (2.6.18)
       jmespath (~> 1.0)
-    aws-sdk-resources (2.6.14)
-      aws-sdk-core (= 2.6.14)
+    aws-sdk-resources (2.6.18)
+      aws-sdk-core (= 2.6.18)
     axiom-types (0.1.1)
       descendants_tracker (~> 0.0.4)
       ice_nine (~> 0.11.0)
@@ -55,6 +55,7 @@ GEM
     rack-accept (0.4.5)
       rack (>= 0.4)
     rake (11.3.0)
+    rubyzip (1.2.0)
     thread_safe (0.3.5)
     tool (0.2.3)
     tzinfo (1.2.2)
@@ -75,6 +76,7 @@ DEPENDENCIES
   grape-entity
   puma
   rake
+  rubyzip
 
 BUNDLED WITH
    1.12.5

@@ -64,7 +64,7 @@ module Request
         tc = ((@error_code==0) && (@httptype==:get) && (@type!=:heartbeat)) ? Connection.instance.getTC(@params) : nil
         @response[:tc] = tc if tc
       rescue Exception => e
-        puts "AbstractRequest EXCEPTION with getTC: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+        puts "ERROR! AbstractRequest EXCEPTION with getTC: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
         @error_code = 5000 if @error_code==0
         @response[:success] = false
       end
@@ -146,7 +146,7 @@ module Request
             end
             @response['updated'] = !(@response['created'] = (Connection.instance.putEntitlement(raParams)==0))
           rescue Exception => e
-            puts "Entitlement EXCEPTION with putEntitlement: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+            puts "ERROR! Entitlement EXCEPTION with putEntitlement: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
             @error_code = 5000
             @response = { success: false, message: 'Unknown error during creating/updating an entitlement' }
           end
@@ -205,7 +205,7 @@ module Request
           begin
             @response['deleted'] = Connection.instance.deleteEntitlements(@params)
           rescue Exception => e
-            puts "Entitlements EXCEPTION with deleteEntitlements: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+            puts "ERROR! Entitlements EXCEPTION with deleteEntitlements: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
             @error_code = 5000
             @response = { success: false, message: 'Unknown error during deleting' }
           end
@@ -214,9 +214,9 @@ module Request
 
           begin
             @response['entitlements'] = Connection.instance.getEntitlements(@params)
-            @response['entitled'] = !(@response['entitlements'].empty? || (@response['entitlements'].count==1 && @response['entitlements'][0] && @response['entitlements'][0]["product"]=="gameplus"))
+            @response['entitled'] = !(@response['entitlements'].empty? || (@response['entitlements'].count==1 && @response['entitlements'][0] && Cfg.isEntitlementAddon(@response['entitlements'][0]["product"])))
           rescue Exception => e
-            puts "Entitlements EXCEPTION with getEntitlements: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+            puts "ERROR! Entitlements EXCEPTION with getEntitlements: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
             @error_code = 5000
             @response = { success: false, entitled: true, entitlements: [] }
           end
@@ -250,7 +250,7 @@ module Request
           tc = Connection.instance.getTC(@params)
           return 'Too old tc_version to renew' if tc && (tc[:version].to_f > @params['tc_version'].to_f)
         rescue Exception => e
-          puts "TC EXCEPTION with getEntitlements: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+          puts "ERROR! TC EXCEPTION with getEntitlements: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
           @error_code = 5000
           return 'Error getting TC'
         end
