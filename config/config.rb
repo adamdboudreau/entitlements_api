@@ -54,7 +54,9 @@ class Cfg
   end 
 
   def self.isEntitlementAddon(entitlement)
-    @config && @config['entitlementAddons'] && (@config['entitlementAddons'].include? entitlement)
+    result = @config && @config['entitlementAddons'] && (@config['entitlementAddons'].include? entitlement)
+puts "Cfg.isEntitlementAddon(#{entitlement}) returns #{result}"
+    result
   end
 
   def self.config
