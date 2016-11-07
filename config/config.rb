@@ -53,10 +53,13 @@ class Cfg
     end
   end 
 
-  def self.isEntitlementAddon(entitlement)
-    result = @config && @config['entitlementAddons'] && (@config['entitlementAddons'].include? entitlement)
-puts "Cfg.isEntitlementAddon(#{entitlement}) returns #{result}"
-    result
+  def self.containsEntitlementNotAddon(raEntitlements)
+    if @config && @config['entitlementAddons']
+      raEntitlements.each do |entitlement|
+        return true unless (@config['entitlementAddons'].include? entitlement["product"])
+      end
+    end
+    false
   end
 
   def self.config
