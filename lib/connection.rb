@@ -34,7 +34,7 @@ class Connection
     initialize
   end
 
-  def putEntitlement (params_array, delete_existing = true) # return a number of deleted records, or raises an exception on error
+  def putEntitlement (params_array, delete_existing = true) # returns a number of deleted records, or raises an exception on error
     puts "Connection.putEntitlement started with params_array: #{params_array}\n"
     result = 0
 
@@ -78,7 +78,7 @@ class Connection
 
 # comment out to disable SPDR checking
     # ping SPDR if no entitlements found, or if the only entitlement is addon (for example, gameplus)
-    if (check_spdr && !Cfg.containsEntitlementNotAddon(result))
+    if (check_spdr && !Cfg.containsBaseEntitlement(result))
       moveEntitlementsToArchive(result, "Deleted before SPDR check") if result.count>0
       puts 'Connection.getEntitlements, checking entitlements at SPDR to insert them to Cassandra'
       putEntitlement CAMP.new.getEntitlementParamsToInsert(params), false

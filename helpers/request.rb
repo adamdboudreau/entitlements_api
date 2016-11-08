@@ -214,7 +214,7 @@ module Request
 
           begin
             @response['entitlements'] = Connection.instance.getEntitlements(@params)
-            @response['entitled'] = Cfg.containsEntitlementNotAddon(@response['entitlements'])
+            @response['entitled'] = Cfg.containsBaseEntitlement(@response['entitlements'])
           rescue Exception => e
             puts "ERROR! Entitlements EXCEPTION with getEntitlements: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
             @error_code = 5000

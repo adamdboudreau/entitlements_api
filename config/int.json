@@ -1,11 +1,14 @@
 {
   "cassandraCluster"   : {
-                          "hostsaws"             : [ "172.31.49.96" ],
-                          "hosts"             : [ "54.209.156.173" ],
-                          "port"              : 9042,
+                          "hosts"             : [ "52.55.125.93", "52.206.150.93", "52.5.166.145" ],
+                          "port"              : 9142,
                           "username"          : "",
                           "password"          : "",
-                          "keyspace"          : "entitlements_dev"
+                          "keyspace"          : "entitlements",
+                          "use_ssl"           : true,
+                          "certServer"        : "./certificates/bundle_prddtccas.crt",
+                          "certClient"        : "./certificates/cassandraPro.cer.pem",
+                          "certKey"           : "./certificates/cassandraPro.key.pem"
   },
   "tables"             : {
                           "entitlements"            : "entitlements",

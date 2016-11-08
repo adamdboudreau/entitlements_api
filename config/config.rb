@@ -53,7 +53,7 @@ class Cfg
     end
   end 
 
-  def self.containsEntitlementNotAddon(raEntitlements)
+  def self.containsBaseEntitlement(raEntitlements)
     if @config && @config['entitlementAddons']
       raEntitlements.each do |entitlement|
         return true unless (@config['entitlementAddons'].include? entitlement["product"])
