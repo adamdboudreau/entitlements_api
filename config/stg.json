@@ -137,6 +137,18 @@
                                }
                              }
                            },
+                           "k83GiHq94vNAw1L7" : {
+                             "description": "NeoLine - readonly access",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01",
+                                            "cql"          : "2099-12-31 00:00:01"
+                               }
+                             }
+                           },
                            "gO7qM5zV0pTm8Rf9" : {
                              "description": "Vani Dangeti - full access",
                              "allowed": {
