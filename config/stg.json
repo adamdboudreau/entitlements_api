@@ -2,7 +2,7 @@
   "cassandraCluster"   : {
                           "hostsaws"             : [ "172.31.49.96" ],
                           "hosts"             : [ "54.209.156.173" ],
-                          "port"              : 9042,
+                          "port"              : 90422,
                           "username"          : "",
                           "password"          : "",
                           "keyspace"          : "entitlements_dev"
