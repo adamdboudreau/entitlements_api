@@ -207,7 +207,7 @@
   },
   "campAPI" : {
     "url_original"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2-lab3/nhlEntitlements/",
-    "url"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2/nhlEntitlements/error/",
+    "url"                         : "https://proxy-camp-nhl.egslb.vf.rogers1.com/api/v2/nhlEntitlements/",
     "pemFile"                     : "./certificates/camp.pem",
     "defaultSpdrProvisioningMins" : 1440,
     "defaultSpdrErrorProvisioningMins" : 60,
