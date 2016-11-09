@@ -2,7 +2,7 @@
   "cassandraCluster"   : {
                           "hostsaws"             : [ "172.31.49.96" ],
                           "hosts"             : [ "54.209.156.173" ],
-                          "port"              : 90422,
+                          "port"              : 9042,
                           "username"          : "",
                           "password"          : "",
                           "keyspace"          : "entitlements_dev"
@@ -207,7 +207,7 @@
   },
   "campAPI" : {
     "url_original"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2-lab3/nhlEntitlements/",
-    "url"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2/nhlEntitlements/",
+    "url"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2/nhlEntitlements/error/",
     "pemFile"                     : "./certificates/camp.pem",
     "defaultSpdrProvisioningMins" : 1440,
     "defaultSpdrErrorProvisioningMins" : 60,
