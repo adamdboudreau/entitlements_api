@@ -78,6 +78,7 @@ module Request
         end
       end
       @response[:error_code] = @error_code if @error_code>0
+      @response[:api_version] = Cfg.version if @params['api_version']
       @response[:processing_time_ms] = '%.03f' % ((Time.now.to_f - @start_time)*1000)
       puts "Request: /#{@type}/?" + URI.encode(@params.map{|k,v| "#{k}=#{v}"}.join("&")) + "\nResponse: #{@response.to_s}\n"
 #      Connection.instance.connect if @params['disconnect']

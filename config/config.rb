@@ -70,4 +70,8 @@ class Cfg
     @requestParameters.clone
   end
 
+  def self.version
+    '1.0.27'
+  end
+
 end

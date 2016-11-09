@@ -6,9 +6,9 @@
                           "password"          : "",
                           "keyspace"          : "entitlements",
                           "use_ssl"           : true,
-                          "certServer"        : "./certificates/bundle_prddtccas.crt",
-                          "certClient"        : "./certificates/cassandraPro.cer.pem",
-                          "certKey"           : "./certificates/cassandraPro.key.pem"
+                          "certServer"        : "./certificates/qa_cassandra/bundle_prddtccas.crt",
+                          "certClient"        : "./certificates/qa_cassandra/devdtccasClient.crt",
+                          "certKey"           : "./certificates/qa_cassandra/devdtccasClient.key"
   },
   "tables"             : {
                           "entitlements"            : "entitlements",
@@ -41,7 +41,6 @@
                          },
   "archiveLimitPerRun" : 250,
   "campAPI" : {
-    "url1"                         : "https://camp.egslb.net.rogers.com/api/v2/nhlEntitlements/",
     "url"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2-lab3/nhlEntitlements/",
     "pemFile"                     : "./certificates/dtc_csr.pem",
     "defaultSpdrProvisioningMins" : 1440,
