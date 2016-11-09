@@ -132,8 +132,13 @@ class CAMP
 
   def getEntitlementParamsToInsert (params)
     results = []
-    spdrResults = self.check(params)
-#    spdrResults = self.getEntitlements(params) # the change for RGCL3-607, removed now
+    begin
+      spdrResults = self.check(params)
+#      spdrResults = self.getEntitlements(params) # the change for RGCL3-607, removed now
+    rescue Exception => e
+      puts "ERROR! Camp.getEntitlementParamsToInsert EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}\n"
+      spdrResults = Cfg.config['campAPI']['ruleDefault'].clone
+    end
 
     spdrResults['entitlements'].each do |entitlement|
       results << Hash[
