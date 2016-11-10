@@ -23,7 +23,17 @@ class CAMP
       result = nil
       nAttempt += 1
       puts "CAMP.check going to connect to #{uri}"
-      response = Hash.from_xml(params['spdrResponse'] ? params['spdrResponse'] : http.request(Net::HTTP::Get.new(uri.request_uri)).body)
+      if params['spdrResponse'] # emulating spdr response
+        response = Hash.from_xml(params['spdrResponse'])
+      else
+        request_uri = uri.request_uri
+        puts "CAMP.check request_uri=#{request_uri}"
+        path = Net::HTTP::Get.new(request_uri)
+        puts "CAMP.check path=#{path}"
+        data = http.request(path)
+        puts "CAMP.check data=#{data}"
+        response = Hash.from_xml(data.body)
+      end
       puts "CAMP.check params[spdrResponse] found, taking it as a response: #{params['spdrResponse']}" if params['spdrResponse']
       puts "CAMP.check pinging SPDR, attempt #{nAttempt}, response=#{response}" unless params['spdrResponse']
 
