@@ -143,6 +143,7 @@ class CAMP
   def getEntitlementParamsToInsert (params)
     results = []
     begin
+      raise "Test Exception at CAMP.getEntitlementParamsToInsert" if (params['guid']=='24181e1f-b526-40a1-b27b-563de489f3e0')
       spdrResults = self.check(params)
 #      spdrResults = self.getEntitlements(params) # the change for RGCL3-607, removed now
     rescue Exception => e
