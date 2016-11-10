@@ -29,9 +29,9 @@ class CAMP
         request_uri = uri.request_uri
         puts "CAMP.check request_uri=#{request_uri}"
         path = Net::HTTP::Get.new(request_uri)
-        puts "CAMP.check path=#{path}"
+        puts "CAMP.check path=#{path.inspect}"
         data = http.request(path)
-        puts "CAMP.check data=#{data}"
+        puts "CAMP.check data=#{data.inspect}"
         response = Hash.from_xml(data.body)
       end
       puts "CAMP.check params[spdrResponse] found, taking it as a response: #{params['spdrResponse']}" if params['spdrResponse']

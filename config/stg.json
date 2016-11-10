@@ -206,8 +206,8 @@
     "backupFileFormat" : "stg-%%table%%-%Y-%m-%d-%H%M%S.csv"
   },
   "campAPI" : {
-    "url_original"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2-lab3/nhlEntitlements/",
-    "url"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2/nhlEntitlements/",
+    "url"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2-lab3/nhlEntitlements/",
+    "url_new"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2/nhlEntitlements/",
     "pemFile"                     : "./certificates/camp.pem",
     "defaultSpdrProvisioningMins" : 1440,
     "defaultSpdrErrorProvisioningMins" : 60,
