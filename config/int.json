@@ -4,9 +4,9 @@
                           "port"              : 9142,
                           "username"          : "",
                           "password"          : "",
-                          "keyspace"          : "entitlements",
+                          "keyspace"          : "dtces",
                           "use_ssl"           : true,
-                          "certServer"        : "./certificates/qa_cassandra/bundle_prddtccas.crt",
+                          "certServer"        : "./certificates/qa_cassandra/bundle_devdtccas.crt",
                           "certClient"        : "./certificates/qa_cassandra/devdtccasClient.crt",
                           "certKey"           : "./certificates/qa_cassandra/devdtccasClient.key"
   },
