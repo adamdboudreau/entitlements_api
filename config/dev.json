@@ -40,7 +40,7 @@
                              }
                            }
                          },
-  "archiveLimitPerRun" : 250,
+  "archiveLimitPerRun" : 200,
   "campAPI" : {
     "url1"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2-lab3/nhlEntitlements/",
     "url"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2/nhlEntitlements/",

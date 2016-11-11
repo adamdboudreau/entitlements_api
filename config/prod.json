@@ -153,7 +153,7 @@
                              }
                            }
                          },
-  "archiveLimitPerRun" : 250,
+  "archiveLimitPerRun" : 200,
   "s3": {
     "bucket" : "dtces-cassandra-backups",
     "backupFileFormat" : "prod-%%table%%-%Y-%m-%d-%H%M%S.csv"

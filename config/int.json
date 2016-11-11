@@ -1,14 +1,11 @@
 {
   "cassandraCluster"   : {
-                          "hosts"             : [ "52.55.125.93", "52.206.150.93", "52.5.166.145" ],
-                          "port"              : 9142,
+                          "hostsaws"             : [ "172.31.49.96" ],
+                          "hosts"             : [ "54.209.156.173" ],
+                          "port"              : 9042,
                           "username"          : "",
                           "password"          : "",
-                          "keyspace"          : "dtces",
-                          "use_ssl"           : true,
-                          "certServer"        : "./certificates/qa_cassandra/bundle_devdtccas.crt",
-                          "certClient"        : "./certificates/qa_cassandra/devdtccasClient.crt",
-                          "certKey"           : "./certificates/qa_cassandra/devdtccasClient.key"
+                          "keyspace"          : "entitlements_dev"
   },
   "tables"             : {
                           "entitlements"            : "entitlements",
@@ -21,7 +18,7 @@
   "entitlementAddons"  : ["gameplus"],
   "apiKeys"            : {
                            "int123" : {
-                             "description": "Sergey Skyba development/int",
+                             "description": "Sergey Skyba development",
                              "allowed": {
                                "get"    : {
                                             "heartbeat"    : "2099-12-31 00:00:01",
@@ -37,12 +34,181 @@
                                "post"   : { "archive" : "2099-12-31 00:00:01" },
                                "delete" : { "entitlements" : "2099-12-31 00:00:01" }
                              }
+                           },
+                           "y8LQh9vF2pAs34Kx" : {
+                             "description": "Adam - full access",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01",
+                                            "cql"          : "2099-12-31 00:00:01"
+                                          },
+                               "put"    : {
+                                            "entitlement" : "2099-12-31 00:00:01",
+                                            "tc"          : "2099-12-31 00:00:01"
+                                          },
+                               "post"   : { "archive" : "2099-12-31 00:00:01" },
+                               "delete" : { "entitlements" : "2099-12-31 00:00:01" }
+                             }
+                           },
+                           "o9Hj71Lfp8kqG33z" : {
+                             "description": "Rob - full access",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01",
+                                            "cql"          : "2099-12-31 00:00:01"
+                                          },
+                               "put"    : {
+                                            "entitlement" : "2099-12-31 00:00:01",
+                                            "tc"          : "2099-12-31 00:00:01"
+                                          },
+                               "post"   : { "archive" : "2099-12-31 00:00:01" },
+                               "delete" : { "entitlements" : "2099-12-31 00:00:01" }
+                             }
+                           },
+                           "stgL9koH3lq1nD84sJa" : {
+                             "description": "Wali snnow - full access",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01",
+                                            "cql"          : "2099-12-31 00:00:01"
+                                          },
+                               "put"    : {
+                                            "entitlement" : "2099-12-31 00:00:01",
+                                            "tc"          : "2099-12-31 00:00:01"
+                                          },
+                               "post"   : { "archive" : "2099-12-31 00:00:01" },
+                               "delete" : { "entitlements" : "2099-12-31 00:00:01" }
+                             }
+                           },
+                           "b9Hj71Lfp8kR6hu5" : {
+                             "description": "Wali - full access",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01",
+                                            "cql"          : "2099-12-31 00:00:01"
+                                          },
+                               "put"    : {
+                                            "entitlement" : "2099-12-31 00:00:01",
+                                            "tc"          : "2099-12-31 00:00:01"
+                                          },
+                               "post"   : { "archive" : "2099-12-31 00:00:01" },
+                               "delete" : { "entitlements" : "2099-12-31 00:00:01" }
+                             }
+                           },
+                           "3qNcotuG9R" : {
+                             "description": "Godwine QA - full access",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01",
+                                            "cql"          : "2099-12-31 00:00:01"
+                                          },
+                               "put"    : {
+                                            "entitlement" : "2099-12-31 00:00:01",
+                                            "tc"          : "2099-12-31 00:00:01"
+                                          },
+                               "post"   : { "archive" : "2099-12-31 00:00:01" },
+                               "delete" : { "entitlements" : "2099-12-31 00:00:01" }
+                             }
+                           },
+                           "3qNcotuG9Q" : {
+                             "description": "Godwine QA - readonly access",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01",
+                                            "cql"          : "2099-12-31 00:00:01"
+                               }
+                             }
+                           },
+                           "k83GiHq94vNAw1L7" : {
+                             "description": "NeoLine - readonly access",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01",
+                                            "cql"          : "2099-12-31 00:00:01"
+                               }
+                             }
+                           },
+                           "gO7qM5zV0pTm8Rf9" : {
+                             "description": "Vani Dangeti - full access",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01",
+                                            "cql"          : "2099-12-31 00:00:01"
+                                          },
+                               "put"    : {
+                                            "entitlement" : "2099-12-31 00:00:01",
+                                            "tc"          : "2099-12-31 00:00:01"
+                                          },
+                               "post"   : { "archive" : "2099-12-31 00:00:01" },
+                               "delete" : { "entitlements" : "2099-12-31 00:00:01" }
+                             }
+                           },
+                           "stgtest123" : {
+                             "description": "Readonly access with put/delete limitations",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01"
+                               },
+                               "put"    : {
+                                            "entitlement" : "2099-12-31 00:00:01",
+                                            "tc"          : "2099-12-31 00:00:01"
+                                          },
+                               "post"   : { "archive" : "2099-12-31 00:00:01" },
+                               "delete" : { "entitlements" : "2099-12-31 00:00:01" }
+                             },
+                             "limited": {
+                               "put"    : {
+                                 "entitlement" : {
+                                   "source"   : ["test_zuora", "test_zuora1"],
+                                   "trace_id" : ["test_trace"]
+                                 }
+                               },
+                               "delete" : { 
+                                 "entitlements" : {
+                                   "source"   : ["test_zuora", "test_zuora1"],
+                                   "products" : ["pr1", "pr2"],
+                                   "trace_id" : ["test_trace", "test_trace1"]
+                                 }
+                               }
+                             }
                            }
                          },
-  "archiveLimitPerRun" : 250,
+  "archiveLimitPerRun" : 200,
+  "s3": {
+    "bucket" : "dtces-cassandra-backups",
+    "backupFileFormat" : "stg-%%table%%-%Y-%m-%d-%H%M%S.csv"
+  },
   "campAPI" : {
-    "url"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2-lab3/nhlEntitlements/",
-    "pemFile"                     : "./certificates/dtc_csr.pem",
+    "url_old"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2-lab3/nhlEntitlements/",
+    "url"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2/nhlEntitlements/",
+    "pemFile"                     : "./certificates/camp.pem",
     "defaultSpdrProvisioningMins" : 1440,
     "defaultSpdrErrorProvisioningMins" : 60,
     "defaultSpdrNoProvisioningMins" : 0,

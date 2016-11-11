@@ -71,7 +71,7 @@ class Cfg
   end
 
   def self.version
-    '1.0.27'
+    '1.0.28'
   end
 
 end
