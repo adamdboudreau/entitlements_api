@@ -21,7 +21,7 @@
   "entitlementAddons"  : ["gameplus"],
   "apiKeys"            : {
                            "stg123" : {
-                             "description": "Sergey Skyba development/stg",
+                             "description": "Sergey Skyba development",
                              "allowed": {
                                "get"    : {
                                             "heartbeat"    : "2099-12-31 00:00:01",
