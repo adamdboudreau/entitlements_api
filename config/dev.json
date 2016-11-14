@@ -19,6 +19,7 @@
                           "entitlements_by_enddate" : "entitlements_by_enddate"
   },
   "brands"             : ["gcl", "texture", "snnow", "wwe"],
+  "brandsWithSPDR"     : ["gcl", "texture", "wwe"],
   "entitlementAddons"  : ["gameplus"],
   "apiKeys"            : {
                            "dev123" : {

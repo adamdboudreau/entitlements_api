@@ -62,6 +62,10 @@ class Cfg
     false
   end
 
+  def self.isBrandWithSPDR(brand)
+    @config && @config['brandsWithSPDR'] && (@config['brandsWithSPDR'].include? brand)
+  end
+
   def self.config
     @config.clone
   end
@@ -71,7 +75,7 @@ class Cfg
   end
 
   def self.version
-    '1.0.28'
+    '1.0.29'
   end
 
 end
