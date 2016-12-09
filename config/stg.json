@@ -39,6 +39,42 @@
                                "delete" : { "entitlements" : "2099-12-31 00:00:01" }
                              }
                            },
+                           "yTmg2Ia3o91HqSN7" : {
+                             "description": "Admin tool - full access",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01",
+                                            "cql"          : "2099-12-31 00:00:01"
+                                          },
+                               "put"    : {
+                                            "entitlement" : "2099-12-31 00:00:01",
+                                            "tc"          : "2099-12-31 00:00:01"
+                                          },
+                               "post"   : { "archive" : "2099-12-31 00:00:01" },
+                               "delete" : { "entitlements" : "2099-12-31 00:00:01" }
+                             }
+                           },
+                           "J8w5mv1XiD93s4Gf" : {
+                             "description": "Wali - full access",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01",
+                                            "cql"          : "2099-12-31 00:00:01"
+                                          },
+                               "put"    : {
+                                            "entitlement" : "2099-12-31 00:00:01",
+                                            "tc"          : "2099-12-31 00:00:01"
+                                          },
+                               "post"   : { "archive" : "2099-12-31 00:00:01" },
+                               "delete" : { "entitlements" : "2099-12-31 00:00:01" }
+                             }
+                           },
                            "j6Gqm9KdL0xP24iQ" : {
                              "description": "Godwine - full access",
                              "allowed": {
