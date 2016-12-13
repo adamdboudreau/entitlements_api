@@ -74,8 +74,12 @@ class Cfg
     @requestParameters.clone
   end
 
+  def self.isGUIDValid?(guid)
+    return guid == /[0-9a-fA-F]{32}|[0-9a-fA-F\-]{36}/.match(guid).to_s
+  end
+
   def self.version
-    '1.0.29'
+    '1.0.30'
   end
 
 end
