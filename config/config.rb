@@ -74,8 +74,9 @@ class Cfg
     @requestParameters.clone
   end
 
-  def self.isGUIDValid?(guid)
-    return guid == /[0-9a-fA-F]{32}|[0-9a-fA-F\-]{36}/.match(guid).to_s
+  def self.isHyphensInjectionRequired?(guid)
+#    return guid == /[0-9a-fA-F]{32}|[0-9a-fA-F\-]{36}/.match(guid).to_s
+    return /[0-9a-fA-F]{32}/.match(guid).to_s == guid
   end
 
   def self.version
