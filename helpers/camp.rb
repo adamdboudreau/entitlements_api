@@ -142,14 +142,18 @@ class CAMP
 
   def getEntitlementParamsToInsert (params)
     results = []
+    nAttempts = 5
     begin
       spdrResults = self.check(params)
 #      spdrResults = self.getEntitlements(params) # the change for RGCL3-607, removed now
     rescue Exception => e
-      puts "ERROR! Camp.getEntitlementParamsToInsert EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}\n"
+      puts "ERROR! Camp.getEntitlementParamsToInsert EXCEPTION on attempt #{6-nAttempts}: #{e.message}\nBacktrace: #{e.backtrace.inspect}\n"
+      retry unless (nAttempts -= 1).zero?
       spdrResults = Cfg.config['campAPI']['ruleDefault'].clone
+    else
+      puts "WOW! Camp.getEntitlementParamsToInsert recovered after SPDR exceptions\n" unless 5==nAttempts
     end
-
+  
     spdrResults['entitlements'].each do |entitlement|
       results << Hash[
         'guid'=>params['guid'], 

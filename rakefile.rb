@@ -103,6 +103,60 @@ end
 
 #######################################################################################
 
+desc 'Select and save records that match regex'
+task :select_regex, [:field, :regex] do |task, args|
+  # example: rake select_regex[guid,'[0-9a-fA-F]{32}']
+  table_entitlements = "#{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements']}"
+  puts "select_regex rake task started, running SELECT * FROM #{table_entitlements}"
+  @connection ||= Connection.instance.connection
+  nProcessed = nPassed = 0
+  now = Time.now.to_i
+  sFileName = "selected_#{now}.csv"
+  records = @connection.execute("SELECT * FROM #{table_entitlements}", page_size: 10000)
+
+  File.open(sFileName, "w") do |f|
+    loop do
+      records.each do |row|
+        if (/#{args[:regex]}/.match(row[args[:field]]).to_s==row[args[:field]])
+          nProcessed += 1
+          f.write "#{row['guid']},#{row['brand']},#{row['end_date']},#{row['source']},#{row['product']},#{row['trace_id']},#{row['start_date']}\n"
+        else
+          nPassed +=1
+        end
+      end
+      puts "#{nPassed+nProcessed} processed\n"
+      break if records.last_page?
+      records = records.next_page
+    end
+  end
+  puts "select_regex procedure finished for #{Time.now.to_i-now} seconds: #{nProcessed} records selected, #{nPassed} records passed"
+end
+
+#######################################################################################
+
+desc 'Process csv file inserting hyphens'
+task :inject_hyphens do
+  puts "inject_hyphens rake task started"
+  csvFile = ENV['CSV']
+  abort "File not found: #{csvFile}" unless csvFile && File.file?(csvFile)
+  nCounter = 0
+  now = Time.now.to_i
+  # guid,brand,end_date,source,product,trace_id,start_date
+  sNewFileName = "#{csvFile}-inserted.csv"
+
+  File.open(sNewFileName, "w") do |f|
+    CSV.foreach(csvFile) do |row|
+      puts "Processing line #{nCounter}: #{row}"
+      row[0].insert(20,'-').insert(16,'-').insert(12,'-').insert(8,'-')
+      f.write "#{row[0]},#{row[1]},#{row[2]},#{row[3]},#{row[4]},#{row[5]},#{row[6]}\n"
+      nCounter += 1
+    end
+  end
+  puts "#{nCounter} records imported into #{sNewFileName} for #{Time.now.to_i-now} seconds"
+end
+
+#######################################################################################
+
 desc 'Delete entitlements migrated from Zuora'
 task :delete_zuora do |task, args|
   puts 'Zuora cleanup'
