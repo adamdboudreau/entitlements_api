@@ -173,7 +173,7 @@ class CAMP
         'start_date'=>Time.now.to_i.to_s,
         'end_date'=>(Time.now + 60*Cfg.config['campAPI'][spdrResults['provisionTime']]).to_i.to_s
       ]
-    end if spdrResults['entitled']
+    end if spdrResults && (spdrResults.include? 'entitled') && spdrResults['entitled']
     results
   end
 
