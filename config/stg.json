@@ -74,6 +74,23 @@
                                "delete" : { "entitlements" : "2099-12-31 00:00:01" }
                              }
                            },
+                           "rY7Gso9QnZ4t2Mf5" : {
+                             "description": "David - full access",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01"
+                                          },
+                               "put"    : {
+                                            "entitlement" : "2099-12-31 00:00:01",
+                                            "tc"          : "2099-12-31 00:00:01"
+                                          },
+                               "post"   : { "archive" : "2099-12-31 00:00:01" },
+                               "delete" : { "entitlements" : "2099-12-31 00:00:01" }
+                             }
+                           },
                            "J8w5mv1XiD93s4Gf" : {
                              "description": "Wali - full access",
                              "allowed": {
@@ -133,6 +150,7 @@
   "campAPI" : {
     "url"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2-lab3/nhlEntitlements/",
     "pemFile"                     : "./certificates/camp.pem",
+    "timeout"                     : 12,
     "defaultSpdrProvisioningMins" : 1440,
     "defaultSpdrErrorProvisioningMins" : 60,
     "defaultSpdrNoProvisioningMins" : 0,
@@ -147,6 +165,7 @@
       "CAMP/Status/code=400"    : { "entitled":false, "provisionTime":"defaultSpdrNoProvisioningMins", "source":"spdr_error", "redo":0 }
     },
     "ruleDefault" : { "entitled":true, "entitlements":["fullgcl", "gameplus", "wch"], "provisionTime":"defaultSpdrErrorProvisioningMins", "source":"spdr_error", "redo":2 },
+    "ruleTimeout" : { "entitled":true, "entitlements":["fullgcl", "gameplus", "wch"], "provisionTime":"defaultSpdrErrorProvisioningMins", "source":"spdr_error", "redo":0 },
     "entitlementPath" : "SPDRNHL/response/NHLType",
     "entitlementsMap" : {
       "free"       : ["fullgcl", "gameplus", "wch"],

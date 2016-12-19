@@ -46,6 +46,7 @@
     "url1"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2-lab3/nhlEntitlements/",
     "url"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2/nhlEntitlements/",
     "pemFile"                     : "./certificates/camp.pem",
+    "timeout"                     : 12,
     "defaultSpdrProvisioningMins" : 1440,
     "defaultSpdrErrorProvisioningMins" : 60,
     "defaultSpdrNoProvisioningMins" : 0,
@@ -60,6 +61,7 @@
       "CAMP/Status/code=400"    : { "entitled":false, "provisionTime":"defaultSpdrNoProvisioningMins", "source":"spdr_error", "redo":0 }
     },
     "ruleDefault" : { "entitled":true, "entitlements":["fullgcl", "gameplus", "wch"], "provisionTime":"defaultSpdrErrorProvisioningMins", "source":"spdr_error", "redo":2 },
+    "ruleTimeout" : { "entitled":true, "entitlements":["fullgcl", "gameplus", "wch"], "provisionTime":"defaultSpdrErrorProvisioningMins", "source":"spdr_error", "redo":0 },
     "entitlementPath" : "SPDRNHL/response/NHLType",
     "entitlementsMap" : {
       "free"       : ["fullgcl", "gameplus", "wch"],

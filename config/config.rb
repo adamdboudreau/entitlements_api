@@ -5,6 +5,7 @@ require 'singleton'
 require 'net/smtp'
 require 'net/http'
 require 'uri'
+require 'timeout'
 
 require './lib/connection.rb'
 require './lib/entitlements_service.rb'
