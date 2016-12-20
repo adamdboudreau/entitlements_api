@@ -143,6 +143,7 @@ class CAMP
   def getEntitlementParamsToInsert (params)
     results = []
     nAttempts = 5
+    spdrResults = nil
 
     begin
       status = Timeout::timeout(Cfg.config['campAPI']['timeout']) {
@@ -173,7 +174,8 @@ class CAMP
         'start_date'=>Time.now.to_i.to_s,
         'end_date'=>(Time.now + 60*Cfg.config['campAPI'][spdrResults['provisionTime']]).to_i.to_s
       ]
-    end if spdrResults && (spdrResults.include? 'entitled') && spdrResults['entitled']
+    end if spdrResults && (spdrResults.key?("entitled")) && spdrResults['entitled']
+    puts "getEntitlementParamsToInsert returns #{results}"
     results
   end
 
