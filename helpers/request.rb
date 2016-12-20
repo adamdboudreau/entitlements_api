@@ -50,7 +50,7 @@ module Request
       @error_code = 4005
       return 'Incorrect brand' unless Cfg.config['brands'].include? @params['brand']
 #      return 'Incorrect guid' unless Cfg.isGUIDValid?(@params['guid'])
-# commented out for prod      @params['guid'].insert(20,'-').insert(16,'-').insert(12,'-').insert(8,'-') if Cfg.isHyphensInjectionRequired?(@params['guid'])
+      @params['guid'].insert(20,'-').insert(16,'-').insert(12,'-').insert(8,'-') if Cfg.isHyphensInjectionRequired?(@params['guid'])
       return 'Incorrect search_date' if @params['search_date'] && (@params['search_date'].to_i.to_s != @params['search_date'])
       return 'Incorrect start_date' if @params['start_date'] && (@params['start_date'].to_i.to_s != @params['start_date'])
       return 'Incorrect end_date' if @params['end_date'] && (@params['end_date'].to_i.to_s != @params['end_date'])
