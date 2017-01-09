@@ -161,7 +161,7 @@ class CAMP
       }
     rescue Exception => e # timeout
       puts "ERROR! Camp.getEntitlementParamsToInsert TIMEOUT EXCEPTION"
-      spdrResults = Cfg.config['campAPI']['timeout'].clone
+      spdrResults = Cfg.config['campAPI']['ruleTimeout'].clone
     end
 
     spdrResults['entitlements'].each do |entitlement|
