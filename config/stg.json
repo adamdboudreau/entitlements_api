@@ -127,6 +127,17 @@
                                "delete" : { "entitlements" : "2099-12-31 00:00:01" }
                              }
                            },
+                           "j0KqmF5d1Vao9Rg7" : {
+                             "description": "NeoLine - readonly access",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01"
+                               }
+                             }
+                           },
                            "bT6qV9mZ7sPa5rN2" : {
                              "description": "Alagu - full access",
                              "allowed": {

@@ -118,6 +118,17 @@
                                "delete" : { "entitlements" : "2099-12-31 00:00:01" }
                              }
                            },
+                           "2cBa1UkE8mvW4j6L" : {
+                             "description": "NeoLine - readonly access",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01"
+                               }
+                             }
+                           },
                            "9jFq7b1ZaLE8kW2c" : {
                              "description": "CRM team - full access",
                              "allowed": {

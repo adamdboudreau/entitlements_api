@@ -134,6 +134,37 @@ end
 
 #######################################################################################
 
+desc 'Select and save records that require hyphen injection'
+task :select_for_hyphen_injection do
+  # example: rake select_regex[guid,'[0-9a-fA-F]{32}']
+  table_entitlements = "#{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements']}"
+  puts "select_for_hyphen_injection rake task started, running SELECT * FROM #{table_entitlements}"
+  @connection ||= Connection.instance.connection
+  nProcessed = nPassed = 0
+  now = Time.now.to_i
+  sFileName = "selected_#{now}.csv"
+  records = @connection.execute("SELECT * FROM #{table_entitlements}", page_size: 10000)
+
+  File.open(sFileName, "w") do |f|
+    loop do
+      records.each do |row|
+        if Cfg.isHyphensInjectionRequired?(row['guid'])
+          nProcessed += 1
+          f.write "#{row['guid']},#{row['brand']},#{row['end_date']},#{row['source']},#{row['product']},#{row['trace_id']},#{row['start_date']}\n"
+        else
+          nPassed +=1
+        end
+      end
+      puts "#{nPassed+nProcessed} processed\n"
+      break if records.last_page?
+      records = records.next_page
+    end
+  end
+  puts "select_for_hyphen_injection procedure finished for #{Time.now.to_i-now} seconds: #{nProcessed} records selected, #{nPassed} records passed"
+end
+
+#######################################################################################
+
 desc 'Process csv file inserting hyphens'
 task :inject_hyphens do
   puts "inject_hyphens rake task started"
