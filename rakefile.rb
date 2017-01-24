@@ -500,27 +500,30 @@ end
 
 desc 'Import records to db'
 task :import do
-  now = Time.now.to_i * 1000
+  now = Time.now.to_i
   csvFile = ENV['IMPORT_CSV']
   abort "File not found: #{csvFile}" unless csvFile && File.file?(csvFile)
   nTotal = 0
   sTableName = Cfg.config['cassandraCluster']['keyspace']+'.'+Cfg.config['tables']['entitlements']
   @connection ||= Connection.instance.connection
-  cql = "INSERT INTO #{sTableName} (guid, brand, end_date, source, product, trace_id, start_date) VALUES (?,?,?,?,?,?,?)"
 
   raRows = []
 
   CSV.foreach(csvFile) do |row|
     raRows << row
-    if raRows.length>99
+    if raRows.length>199
       batch = @connection.batch do |batch|
         raRows.each do |row|
-          batch.add("INSERT INTO #{sTableName} (guid, brand, end_date, source, product, trace_id, start_date) VALUES (?,'gcl',7978684768000,'crm','fullgcl','Imported from CRM',?)", 
-            arguments: Array[row[0]+'-'+now.to_s+'-'+nTotal.to_s,now])
-          nTotal += 1
-          batch.add("INSERT INTO #{sTableName} (guid, brand, end_date, source, product, trace_id, start_date) VALUES (?,'gcl',7978684768000,'crm','gameplus','Imported from CRM',?)", 
-            arguments: Array[row[0]+'-'+now.to_s+'-'+nTotal.to_s,now])
-          nTotal += 1
+          unless row[0]=='GUID' # make sure we don't process header
+            row[0].insert(20,'-').insert(16,'-').insert(12,'-').insert(8,'-') if Cfg.isHyphensInjectionRequired?(row[0])
+            args = Array[row[0],row[3]]
+            batch.add("INSERT INTO #{sTableName} (guid, brand, end_date, source, product, trace_id, start_date) VALUES (?,'gcl',7952399888000,'crm','fullgcl',?,1484092800000)", 
+              arguments: args)
+            nTotal += 1
+            batch.add("INSERT INTO #{sTableName} (guid, brand, end_date, source, product, trace_id, start_date) VALUES (?,'gcl',7952399888000,'crm','gameplus',?,1484092800000)", 
+              arguments: args)
+            nTotal += 1
+          end
         end
       end
       @connection.execute(batch)
@@ -531,15 +534,17 @@ task :import do
   if raRows.length>0
     batch = @connection.batch do |batch|
       raRows.each do |row|
-        batch.add("INSERT INTO #{sTableName} (guid, brand, end_date, source, product, trace_id, start_date) VALUES (?,'gcl',7978684768000,'crm','fullgcl','Imported from CRM',?)", 
-            arguments: Array[row[0]+'-'+now.to_s+'-'+nTotal.to_s,now])
+        row[0].insert(20,'-').insert(16,'-').insert(12,'-').insert(8,'-') if Cfg.isHyphensInjectionRequired?(row[0])
+        args = Array[row[0],row[3]]
+        batch.add("INSERT INTO #{sTableName} (guid, brand, end_date, source, product, trace_id, start_date) VALUES (?,'gcl',7952399888000,'crm','fullgcl',?,1484092800000)", 
+            arguments: args)
         nTotal += 1
-        batch.add("INSERT INTO #{sTableName} (guid, brand, end_date, source, product, trace_id, start_date) VALUES (?,'gcl',7978684768000,'crm','gameplus','Imported from CRM',?)", 
-            arguments: Array[row[0]+'-'+now.to_s+'-'+nTotal.to_s,now])
+        batch.add("INSERT INTO #{sTableName} (guid, brand, end_date, source, product, trace_id, start_date) VALUES (?,'gcl',7952399888000,'crm','gameplus',?,1484092800000)", 
+            arguments: args)
         nTotal += 1
       end
     end
     @connection.execute(batch)
   end
-  puts "Importing finished with #{nTotal} records inserted, processed by #{Time.now.to_i-(now/1000)} seconds"
+  puts "Importing finished with #{nTotal} records inserted, processed by #{Time.now.to_i-now} seconds"
 end

@@ -160,7 +160,7 @@ class CAMP
         end
       }
     rescue Exception => e # timeout
-      puts "ERROR! Camp.getEntitlementParamsToInsert TIMEOUT EXCEPTION"
+      puts "Camp.getEntitlementParamsToInsert TIMEOUT happened"
       spdrResults = Cfg.config['campAPI']['ruleTimeout'].clone
     end
 
