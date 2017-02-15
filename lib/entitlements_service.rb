@@ -51,7 +51,7 @@ module EntitlementsService
     end
 
     route :any, '*path' do
-      {"success"=>false, "message"=>"Unknown request"}
+      { "success"=>false, "error_code"=>4006, "message"=>"Unknown request" }
     end
 
   end

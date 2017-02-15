@@ -548,3 +548,54 @@ task :import do
   end
   puts "Importing finished with #{nTotal} records inserted, processed by #{Time.now.to_i-now} seconds"
 end
+
+#######################################################################################
+
+desc 'Import records to db with all columns specified'
+task :importAllColumns do
+  now = Time.now.to_i
+  csvFile = ENV['CSV']
+  abort "File not found: #{csvFile}" unless csvFile && File.file?(csvFile)
+  nTotal = 0
+  sTableName = Cfg.config['cassandraCluster']['keyspace']+'.'+Cfg.config['tables']['entitlements']
+  @connection ||= Connection.instance.connection
+
+  raRows = []
+
+  CSV.foreach(csvFile) do |row|
+    raRows << row
+    if raRows.length>99
+      batch = @connection.batch do |batch|
+        raRows.each do |row|
+          if row[0] && row[0]!='GUID' # make sure the line is not empty and we don't process header
+            row[0].insert(20,'-').insert(16,'-').insert(12,'-').insert(8,'-') if Cfg.isHyphensInjectionRequired?(row[0])
+            row[4] = Date.parse(row[4]).to_time.to_i * 1000
+            row[5] = Date.parse(row[5]).to_time.to_i * 1000
+            batch.add("INSERT INTO #{sTableName} (GUID,Source,Brand,Product,Start_date,End_date,Trace_id) VALUES (?,?,?,?,?,?,?)", 
+              arguments: row)
+            nTotal += 1
+          end
+        end
+      end
+      @connection.execute(batch)
+      raRows = []
+      puts "Processed: #{nTotal}"
+    end
+  end
+  if raRows.length>0
+    batch = @connection.batch do |batch|
+      raRows.each do |row|
+        if row[0] && row[0]!='GUID' # make sure the line is not empty and we don't process header
+          row[0].insert(20,'-').insert(16,'-').insert(12,'-').insert(8,'-') if Cfg.isHyphensInjectionRequired?(row[0])
+          row[4] = Date.parse(row[4]).to_time.to_i * 1000
+          row[5] = Date.parse(row[5]).to_time.to_i * 1000
+          batch.add("INSERT INTO #{sTableName} (GUID,Source,Brand,Product,Start_date,End_date,Trace_id) VALUES (?,?,?,?,?,?,?)", 
+            arguments: row)
+          nTotal += 1
+        end
+      end
+    end
+    @connection.execute(batch)
+  end
+  puts "Importing finished with #{nTotal} records inserted, processed by #{Time.now.to_i-now} seconds"
+end
