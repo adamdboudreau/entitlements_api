@@ -91,6 +91,36 @@
                                "delete" : { "entitlements" : "2099-12-31 00:00:01" }
                              }
                            },
+                           "g9Uq2mCl3SjP8fA7" : {
+                             "description": "WWE Vasu - full access",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01"
+                                          },
+                               "put"    : {
+                                            "entitlement" : "2099-12-31 00:00:01",
+                                            "tc"          : "2099-12-31 00:00:01"
+                                          },
+                               "post"   : { "archive" : "2099-12-31 00:00:01" },
+                               "delete" : { "entitlements" : "2099-12-31 00:00:01" }
+                             }
+                           },
+                           "stg9gHkqO6ibAlS4" : {
+                             "description": "DTC-RV",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01"
+                                          },
+                               "put"    : {
+                                            "entitlement" : "2099-12-31 00:00:01"
+                                          },
+                               "delete" : { "entitlements" : "2099-12-31 00:00:01" }
+                             }
+                           },
                            "rY7Gso9QnZ4t2Mf5" : {
                              "description": "David - full access",
                              "allowed": {

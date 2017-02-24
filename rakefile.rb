@@ -438,6 +438,33 @@ end
 
 #######################################################################################
 
+desc 'Export'
+task :export, [:table_name, :condition] do |task, args|
+  sTableName = Cfg.config['cassandraCluster']['keyspace'] + '.' + args[:table_name]
+  sFileName = "export_#{sTableName}_" + Time.now.to_i.to_s + '.csv'
+  @connection ||= Connection.instance.connection
+  nCounter = 0
+  puts "Export rake task started with fileName=#{sFileName}, tableName=#{sTableName}"
+
+  File.open(sFileName, "w") do |f|
+    f.write "guid,brand,source,product,trace_id,start_date,end_date\n"
+    result  = @connection.execute("SELECT * FROM #{sTableName} WHERE #{args[:condition]}", page_size: 1000)
+    loop do
+      result.each do |row|
+        f.write "#{row['guid']},#{row['brand']},#{row['source']},#{row['product']},#{row['trace_id']},#{row['start_date']},#{row['end_date']}\n" if row['source'] == 'spdr'
+        nCounter += 1
+      end
+      puts "Processed #{nCounter} records"
+
+      break if result.last_page?
+      result = result.next_page
+    end
+  end
+  puts "#{nCounter} records backuped at #{sFileName}"
+end
+
+#######################################################################################
+
 desc 'Backup'
 task :backup, [:table_name] do |task, args|
   sTableName = args[:table_name] || Cfg.config['tables']['entitlements']
