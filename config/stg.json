@@ -74,6 +74,23 @@
                                "delete" : { "entitlements" : "2099-12-31 00:00:01" }
                              }
                            },
+                           "stg5Gw6bQm2hD47v" : {
+                             "description": "MLB - full access",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01"
+                                          },
+                               "put"    : {
+                                            "entitlement" : "2099-12-31 00:00:01",
+                                            "tc"          : "2099-12-31 00:00:01"
+                                          },
+                               "post"   : { "archive" : "2099-12-31 00:00:01" },
+                               "delete" : { "entitlements" : "2099-12-31 00:00:01" }
+                             }
+                           },
                            "stg7r217Kqb9SuA3" : {
                              "description": "CRM R217 - full access",
                              "allowed": {
