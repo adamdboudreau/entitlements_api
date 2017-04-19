@@ -297,6 +297,36 @@ module Request
 
 #-----------------------------------------------------------------------------------------------------------
 
+  class Reset < AbstractRequest
+
+    def initialize (headers, params)
+      super :reset, headers, params, :post
+    end
+
+    def validate
+      return @error_message unless (@error_message = super) == true
+      true
+    end
+
+    def process
+      unless (@error_message = validate) == true
+        @response = { success: false, message: @error_message }
+      else
+        begin
+          @config = JSON.parse(File.read("./config/#{ENV['RACK_ENV']}.json"))
+          response = ApplicationHelper::getAdminResponse
+          ApplicationHelper::applyAdminParams response
+          @response["response"] = response if @params['include_raw_response']
+        rescue Exception => e
+          @response = { success: false, error_code: 4009, message: e.message }
+        end
+      end
+      super
+    end
+  end
+
+#-----------------------------------------------------------------------------------------------------------
+
   class CQL < AbstractRequest
 
     def initialize (headers, params, httptype = :get)

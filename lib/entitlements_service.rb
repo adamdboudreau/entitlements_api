@@ -44,6 +44,12 @@ module EntitlementsService
       end
     end
 
+    resource :reset do
+      post do
+        Request::Reset.new(headers, params).process
+      end
+    end
+
     resource :cql do
       get do
         Request::CQL.new(headers, params).process

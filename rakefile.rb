@@ -282,6 +282,43 @@ end
 
 #######################################################################################
 
+desc 'Get entitlements as a batch'
+task :get_batch, [:brand] do |task, args|
+  puts "get_batch started"
+  puts "pricing-test:test:google-ad".to_s.match(/:test/)   #would match , or "pricing-test:test:sn-banner"
+  abort "Incorrect parameters: please use rake get_batch[brand] format" unless args[:brand]
+  csvFile = ENV['CSV']
+  abort "File not found: #{csvFile}" unless csvFile && File.file?(csvFile)
+  nCounter = 0
+  now = Time.now.to_i
+  # guid,brand,end_date,source,product,trace_id,start_date
+  sFileName = "#{csvFile}_#{now}.csv"
+  table_entitlements = "#{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements']}"
+  @connection ||= Connection.instance.connection
+
+  File.open(sFileName, "w") do |f|
+    CSV.foreach(csvFile) do |row|
+      puts "Processing GUID: #{row[0]}"
+      if row[0] && row[0].strip.size>5 
+        row[0].insert(20,'-').insert(16,'-').insert(12,'-').insert(8,'-') if Cfg.isHyphensInjectionRequired?(row[0])
+        puts "Processed GUID: #{row[0]}"
+        cql = "SELECT * FROM #{table_entitlements} WHERE guid='#{row[0]}' AND brand='#{args[:brand]}'"
+        puts "Running CQL: #{cql}"
+        @connection.execute(cql).each do |ent_row|
+          f.write "#{row[0]},#{args[:brand]},#{ent_row['end_date']},#{ent_row['source']},#{ent_row['product']},#{ent_row['trace_id']},#{ent_row['start_date']}\n"
+          nCounter += 1
+        end
+      else
+        puts "Error processing GUID: #{row[0]}"
+      end
+    end
+  end
+  puts "#{nCounter} records found."
+  puts "All the records are stored at #{sFileName}"
+end
+
+#######################################################################################
+
 desc 'Update entitlements'
 task :update_batch do # accepts csv file with guid, old_trace_id, new_trace_id structure
   puts "Batch updatng started"
@@ -372,7 +409,7 @@ task :spdr do
         http.key = OpenSSL::PKey::RSA.new(key)
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
         response = http.request(Net::HTTP::Get.new(uri.request_uri)).body
-#        puts "Got from SPDR: #{body}"
+        puts "Got from SPDR: #{response}"
 #        response = Hash.from_xml(body)
         f.write "#{row[0].strip}," + response.to_s.gsub("\n",'')[39..-1] + "\n"
       else
@@ -499,6 +536,7 @@ task :backup, [:table_name] do |task, args|
     zipfile.add(sFileName, sFileName)
   end
   puts "#{sFileName} zipped to #{sZipFileName}"
+  exit
 
   puts "Trying to upload #{sZipFileName} as #{File.basename(sZipFileName)} onto bucket #{Cfg.config['s3']['bucket']} for region: #{ENV['AWS_REGION']}"
 
