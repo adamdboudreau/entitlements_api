@@ -52,6 +52,7 @@ class Cfg
     unless ENV['CAMP_KEY']
       abort 'Error: CAMP_KEY environment variable is not set'
     end
+
   end 
 
   def self.containsBaseEntitlement(raEntitlements)
@@ -81,7 +82,7 @@ class Cfg
   end
 
   def self.version
-    '1.0.31'
+    '1.0.32'
   end
 
 end

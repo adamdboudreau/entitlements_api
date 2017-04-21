@@ -299,8 +299,8 @@ module Request
 
   class Reset < AbstractRequest
 
-    def initialize (headers, params)
-      super :reset, headers, params, :post
+    def initialize
+      super :reset, nil, {}, :post
     end
 
     def validate

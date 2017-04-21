@@ -1,4 +1,3 @@
-require './config/config.rb'
 
 module EntitlementsService
   class API < Grape::API
@@ -61,4 +60,27 @@ module EntitlementsService
     end
 
   end
+
+#######################################################################################################################
+
+  class Helper
+    
+    def self.getAdminResponse
+      uri = URI(Cfg.config['urlAdmin'])
+      res = Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+        req = Net::HTTP::Get.new(uri)
+        req['Content-Type'] = 'application/json'
+        req['Authorization'] = "Token token=#{ENV['ADMIN_API_KEY']}"
+        puts "ApplicationHelper.getAdminResponse. Request:\n#{req.inspect}"
+        http.request(req)
+      end
+      JSON.parse res.body
+    end
+
+    def self.applyAdminConfig params
+      puts "Helper::applyAdminConfig started with #{params}"
+    end
+
+  end
+
 end
