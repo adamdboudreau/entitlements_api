@@ -37,13 +37,14 @@ module Request
         begin @error_code = 4004; return "Incorrect parameter value: #{param[0]}" end unless param[1] && param[1].strip.length>0
       end
 
-      unless @bypass_api_check
+      unless (@bypass_api_check || ((@type==:reset) && (@api_key==Cfg.config['resetAPIKey'])))
         begin @error_code = 4000; return 'Incorrect API key' end unless Cfg.config['apiKeys'][@api_key]
         begin @error_code = 4007; return 'Not authorized' end unless Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s] && Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s][@type.to_s]
         begin @error_code = 4008; return 'API key expired' end unless DateTime.parse(Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s][@type.to_s])>DateTime.now
       end
 
       return true if (@httptype==:get) && (@type==:heartbeat || @type==:cql)
+      return true if (@httptype==:post) && (@type==:reset)
       begin @error_code = 4001; return "No connection to Cassandra" end unless Connection.instance.connection
       return true if (@httptype==:post) && (@type==:archive)
       begin @error_code = 4004; return 'Missed guid' end unless @params['guid']
@@ -299,8 +300,8 @@ module Request
 
   class Reset < AbstractRequest
 
-    def initialize
-      super :reset, nil, {}, :post
+    def initialize (headers=nil, params={})
+      super :reset, headers, params, :post
     end
 
     def validate
@@ -314,8 +315,8 @@ module Request
       else
         begin
           @config = JSON.parse(File.read("./config/#{ENV['RACK_ENV']}.json"))
-          response = ApplicationHelper::getAdminResponse
-          ApplicationHelper::applyAdminParams response
+          response = EntitlementsService::Helper::getAdminResponse
+          EntitlementsService::Helper::applyAdminConfig response
           @response["response"] = response if @params['include_raw_response']
         rescue Exception => e
           @response = { success: false, error_code: 4009, message: e.message }
