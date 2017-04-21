@@ -35,7 +35,10 @@
                                             "entitlement" : "2099-12-31 00:00:01",
                                             "tc"          : "2099-12-31 00:00:01"
                                           },
-                               "post"   : { "archive" : "2099-12-31 00:00:01" },
+                               "post"   : { 
+                                             "archive" : "2099-12-31 00:00:01",
+                                             "reset" : "2099-12-31 00:00:01" 
+                                          },
                                "delete" : { "entitlements" : "2099-12-31 00:00:01" }
                              }
                            },
@@ -53,7 +56,10 @@
                                             "entitlement" : "2099-12-31 00:00:01",
                                             "tc"          : "2099-12-31 00:00:01"
                                           },
-                               "post"   : { "archive" : "2099-12-31 00:00:01" },
+                               "post"   : { 
+                                             "archive" : "2099-12-31 00:00:01",
+                                             "reset" : "2099-12-31 00:00:01" 
+                                          },
                                "delete" : { "entitlements" : "2099-12-31 00:00:01" }
                              }
                            },
@@ -232,13 +238,15 @@
                                             "entitlement" : "2099-12-31 00:00:01",
                                             "tc"          : "2099-12-31 00:00:01"
                                           },
-                               "post"   : { "archive" : "2099-12-31 00:00:01" },
+                               "post"   : { 
+                                             "archive" : "2099-12-31 00:00:01",
+                                             "reset" : "2099-12-31 00:00:01" 
+                                          },
                                "delete" : { "entitlements" : "2099-12-31 00:00:01" }
                              }
                            }
                          },
   "urlAdmin" : "https://pcvalidator-int.herokuapp.com/api/es_parameters",
-  "resetAPIKey" : "reset",
   "archiveLimitPerRun" : 200,
   "campAPI" : {
     "url"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2-lab3/nhlEntitlements/",

@@ -37,7 +37,7 @@ module Request
         begin @error_code = 4004; return "Incorrect parameter value: #{param[0]}" end unless param[1] && param[1].strip.length>0
       end
 
-      unless (@bypass_api_check || ((@type==:reset) && (@api_key==Cfg.config['resetAPIKey'])))
+      unless @bypass_api_check
         begin @error_code = 4000; return 'Incorrect API key' end unless Cfg.config['apiKeys'][@api_key]
         begin @error_code = 4007; return 'Not authorized' end unless Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s] && Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s][@type.to_s]
         begin @error_code = 4008; return 'API key expired' end unless DateTime.parse(Cfg.config['apiKeys'][@api_key]['allowed'][@httptype.to_s][@type.to_s])>DateTime.now

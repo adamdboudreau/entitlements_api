@@ -184,7 +184,6 @@
                          },
   "archiveLimitPerRun" : 200,
   "urlAdmin" : "https://pcvalidator.herokuapp.com/api/es_parameters",
-  "resetAPIKey" : "reset",
   "s3": {
     "bucket" : "dtces-cassandra-backups",
     "backupFileFormat" : "prod-%%table%%-%Y-%m-%d-%H%M%S.csv"
