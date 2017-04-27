@@ -320,7 +320,7 @@
                              }
                            }
                          },
-  "urlAdmin" : "https://pcvalidator-int.herokuapp.com/api/es_parameters",
+  "urlAdmin" : "https://pcvalidator-stg.herokuapp.com/api/es_parameters",
   "archiveLimitPerRun" : 200,
   "campAPI" : {
     "url"                         : "https://proxy-camp-nhl.egslb.vf.rogers.com/api/v2-lab3/nhlEntitlements/",

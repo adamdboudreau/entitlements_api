@@ -20,6 +20,80 @@
   "brands"             : ["gcl", "texture", "snnow", "wwe"],
   "brandsWithSPDR"     : ["gcl", "texture", "wwe"],
   "entitlementAddons"  : ["gameplus"],
+  "apiKeyTemplates"    : {
+                           "read_only" : {
+                             "description": "",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01",
+                                            "cql"          : "2099-12-31 00:00:01"
+                                          }
+                             }
+                           },
+                           "read_write" : {
+                             "description": "",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01"
+                                          },
+                               "put"    : {
+                                            "entitlement" : "2099-12-31 00:00:01",
+                                            "tc"          : "2099-12-31 00:00:01"
+                                          },
+                               "post"   : { 
+                                             "archive" : "2099-12-31 00:00:01",
+                                             "reset" : "2099-12-31 00:00:01" 
+                                          }
+                             }
+                           },
+                           "read_write_delete" : {
+                             "description": "",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01"
+                                          },
+                               "put"    : {
+                                            "entitlement" : "2099-12-31 00:00:01",
+                                            "tc"          : "2099-12-31 00:00:01"
+                                          },
+                               "post"   : { 
+                                             "archive" : "2099-12-31 00:00:01",
+                                             "reset" : "2099-12-31 00:00:01" 
+                                          },
+                               "delete" : { "entitlements" : "2099-12-31 00:00:01" }
+                             }
+                           },
+                           "developer" : {
+                             "description": "",
+                             "allowed": {
+                               "get"    : {
+                                            "heartbeat"    : "2099-12-31 00:00:01",
+                                            "entitlements" : "2099-12-31 00:00:01",
+                                            "tc"           : "2099-12-31 00:00:01",
+                                            "archive"      : "2099-12-31 00:00:01",
+                                            "cql"          : "2099-12-31 00:00:01"
+                                          },
+                               "put"    : {
+                                            "entitlement" : "2099-12-31 00:00:01",
+                                            "tc"          : "2099-12-31 00:00:01"
+                                          },
+                               "post"   : { 
+                                             "archive" : "2099-12-31 00:00:01",
+                                             "reset" : "2099-12-31 00:00:01" 
+                                          },
+                               "delete" : { "entitlements" : "2099-12-31 00:00:01" }
+                             }
+                           }
+  },
   "apiKeys"            : {
                            "prod123" : {
                              "description": "Sergey Skyba prod",
