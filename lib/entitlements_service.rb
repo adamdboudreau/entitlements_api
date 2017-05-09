@@ -66,15 +66,21 @@ module EntitlementsService
   class Helper
 
     def self.getAdminResponse
-      uri = URI(Cfg.config['urlAdmin'])
-      res = Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
-        req = Net::HTTP::Get.new(uri)
-        req['Content-Type'] = 'application/json'
-        req['Authorization'] = "Token token=#{ENV['ADMIN_API_KEY']}"
-        puts "Helper.getAdminResponse. Request:\n#{req.inspect}"
-        http.request(req)
+      begin
+        uri = URI(Cfg.config['urlAdmin'])
+        res = Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+          req = Net::HTTP::Get.new(uri)
+          req['Content-Type'] = 'application/json'
+          req['Authorization'] = "Token token=#{ENV['ADMIN_API_KEY']}"
+          puts "Helper.getAdminResponse. Request:\n#{req.inspect}"
+          http.request(req)
+        end
+        JSON.parse res.body
+      rescue Exception => e
+        puts "ERROR! Helper.getAdminResponse EXCEPTION: cannot connect to admin tool at #{Cfg.config['urlAdmin']}"
+        puts "#{e.message}\nBacktrace: #{e.backtrace.inspect}"
+        return {}
       end
-      JSON.parse res.body
     end
 
     def self.applyAdminConfig params
