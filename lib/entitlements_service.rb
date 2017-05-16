@@ -93,19 +93,19 @@ module EntitlementsService
         end
       end
       puts "\nHelper::applyAdminConfig importing api keys\n"
-      begin
-        if params['api_keys'] && params['api_keys'].kind_of?(Array)
-          puts "\nHelper::applyAdminConfig importing api keys from #{params['api_keys']}\n"
-          params['api_keys'].each do |k|
+      if params['api_keys'] && params['api_keys'].kind_of?(Array)
+        puts "\nHelper::applyAdminConfig importing api keys from #{params['api_keys']}\n"
+        params['api_keys'].each do |k|
+          begin
             puts "Helper.applyAdminParams adding api key #{k['access_token']} with access level #{k['access_level']}"
             Cfg.config['apiKeys'][k['access_token']] = (Cfg.config['apiKeyTemplates'][k['access_level'].to_s]).clone
             Cfg.config['apiKeys'][k['access_token']]['description'] = k['client_name']
+          rescue Exception => e
+            puts "ERROR! Helper.applyAdminParams EXCEPTION on applying keys: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
           end
-        else
-          puts "Helper.applyAdminParams ERROR: api_keys parameter is not array: #{params['api_keys']}"
         end
-      rescue Exception => e
-        puts "ERROR! Helper.applyAdminParams EXCEPTION on applying keys: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+      else
+        puts "Helper.applyAdminParams ERROR: api_keys parameter is not array: #{params['api_keys']}"
       end
 
     end

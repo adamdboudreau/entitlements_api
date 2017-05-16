@@ -1,6 +1,7 @@
 require 'csv'
 require 'aws-sdk'
 require 'zip'
+require 'net/sftp'
 
 require './config/config.rb'
 require './lib/migration.rb'
@@ -536,7 +537,6 @@ task :backup, [:table_name] do |task, args|
     zipfile.add(sFileName, sFileName)
   end
   puts "#{sFileName} zipped to #{sZipFileName}"
-  exit
 
   puts "Trying to upload #{sZipFileName} as #{File.basename(sZipFileName)} onto bucket #{Cfg.config['s3']['bucket']} for region: #{ENV['AWS_REGION']}"
 
@@ -559,6 +559,65 @@ task :backup, [:table_name] do |task, args|
   File.delete(sZipFileName)
   File.delete(sFileName)
   puts "Backup task finished ok"
+end
+
+#######################################################################################
+
+desc 'Backup delta'  # makes backup for the changes since the last backup
+task :backupDelta, [:table_name] do |task, args|
+  sTableName = args[:table_name] || Cfg.config['tables']['entitlements']
+  sFileName = Time.now.strftime(Cfg.config['sftp']['backupFileFormat'].sub('%%table%%',sTableName))
+  sZipFileName = "#{sFileName}.zip"
+  sTableName = Cfg.config['cassandraCluster']['keyspace'] + '.' + sTableName
+  @connection ||= Connection.instance.connection
+  nTotal = 0
+  nFound = 0
+  start_date = (Time.now-24.hours).to_i*1000
+  puts "BackupDelta rake task started with fileName=#{sFileName}, tableName=#{sTableName}, start_date=#{start_date}"
+
+  File.open(sFileName, "w") do |f|
+    result = nil
+    if args[:table_name]=='tc'
+      f.write ("guid,brand,tc_acceptance_date,tc_version\n")
+      result = @connection.execute("SELECT guid,brand,toUnixTimestamp(tc_acceptance_date) AS tc_acceptance_date,tc_version FROM #{sTableName}", page_size: 1000)
+    else
+      f.write ("guid,brand,source,product,trace_id,start_date,end_date\n")
+      result = @connection.execute("SELECT guid,brand,source,product,trace_id,toUnixTimestamp(start_date) AS start_date,end_date FROM #{sTableName}", page_size: 1000)
+    end
+
+    loop do
+      result.each do |row|
+        nTotal += 1
+        if args[:table_name]=='tc' && row['tc_acceptance_date']>start_date
+          f.write "#{row['guid']},#{row['brand']},#{row['tc_acceptance_date']},#{row['tc_version']}\n"
+          nFound += 1
+        elsif row['start_date']>start_date
+          f.write "#{row['guid']},#{row['brand']},#{row['source']},#{row['product']},#{row['trace_id']},#{row['start_date']},#{row['end_date']}\n"
+          nFound += 1
+        end
+      end
+      puts "Found #{nFound} of #{nTotal} processed records"
+
+      break if result.last_page?
+      result = result.next_page
+    end
+  end
+  puts "#{nFound}/#{nTotal} records backuped at #{sFileName}, start zipping"
+
+  Zip::File.open(sZipFileName, Zip::File::CREATE) do |zipfile|
+    zipfile.add(sFileName, sFileName)
+  end
+  puts "#{sFileName} zipped to #{sZipFileName}"
+
+  puts "Trying to upload #{sZipFileName} as #{File.basename(sZipFileName)} onto sftp #{Cfg.config['sftp']['ip']}/#{Cfg.config['sftp']['directory']}"
+
+  sftp = Net::SFTP.start(Cfg.config['sftp']['ip'], Cfg.config['sftp']['user'], keys: [Cfg.config['sftp']['certificate']], passphrase: ENV['DTCES_SFTP_PASSPHRASE'] )
+  sftp.upload!(sZipFileName, "/#{Cfg.config['sftp']['directory']}/#{sZipFileName}")
+
+  puts "Deleting files #{sFileName} and #{sZipFileName}"
+  File.delete(sZipFileName)
+  File.delete(sFileName)
+  puts "BackupDelta task finished ok"
 end
 
 #######################################################################################
