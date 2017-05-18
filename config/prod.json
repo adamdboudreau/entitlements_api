@@ -287,7 +287,7 @@
     "ip" : "24.156.128.7",
     "user" : "dtc_data",
     "directory" : "files",
-    "backupFileFormat" : "dtces-%%table%%-%Y-%m-%d-%H%M%S.csv"
+    "backupFileFormat" : "dtces-%%table%%-%Y-%m-%d.csv"
   },
   "campAPI" : {
     "url"                         : "https://camp.egslb.net.rogers.com/api/v2/nhlEntitlements/",

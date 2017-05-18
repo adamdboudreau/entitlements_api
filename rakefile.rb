@@ -566,32 +566,33 @@ end
 desc 'Backup delta'  # makes backup for the changes since the last backup
 task :backupDelta, [:table_name] do |task, args|
   sTableName = args[:table_name] || Cfg.config['tables']['entitlements']
-  sFileName = Time.now.strftime(Cfg.config['sftp']['backupFileFormat'].sub('%%table%%',sTableName))
+  sFileName = (Time.now-24.hours).strftime(Cfg.config['sftp']['backupFileFormat'].sub('%%table%%',sTableName))
   sZipFileName = "#{sFileName}.zip"
   sTableName = Cfg.config['cassandraCluster']['keyspace'] + '.' + sTableName
   @connection ||= Connection.instance.connection
   nTotal = 0
   nFound = 0
-  start_date = (Time.now-24.hours).to_i*1000
-  puts "BackupDelta rake task started with fileName=#{sFileName}, tableName=#{sTableName}, start_date=#{start_date}"
+  start_date = (Time.now-24.hours).beginning_of_day.to_i*1000
+  end_date = (Time.now-24.hours).end_of_day.to_i*1000
+  puts "BackupDelta rake task started with fileName=#{sFileName}, tableName=#{sTableName}, start_date=#{start_date}, end_date=#{end_date}"
 
   File.open(sFileName, "w") do |f|
     result = nil
     if args[:table_name]=='tc'
-      f.write ("guid,brand,tc_acceptance_date,tc_version\n")
+      f.write ("guid,brand,tc_acceptance_date_timestamp,tc_version\n")
       result = @connection.execute("SELECT guid,brand,toUnixTimestamp(tc_acceptance_date) AS tc_acceptance_date,tc_version FROM #{sTableName}", page_size: 1000)
     else
-      f.write ("guid,brand,source,product,trace_id,start_date,end_date\n")
+      f.write ("guid,brand,source,product,trace_id,start_date_timestamp,end_date\n")
       result = @connection.execute("SELECT guid,brand,source,product,trace_id,toUnixTimestamp(start_date) AS start_date,end_date FROM #{sTableName}", page_size: 1000)
     end
 
     loop do
       result.each do |row|
         nTotal += 1
-        if args[:table_name]=='tc' && row['tc_acceptance_date']>start_date
+        if (args[:table_name]=='tc') && (row['tc_acceptance_date']>start_date) && (row['tc_acceptance_date']<end_date)
           f.write "#{row['guid']},#{row['brand']},#{row['tc_acceptance_date']},#{row['tc_version']}\n"
           nFound += 1
-        elsif row['start_date']>start_date
+        elsif row['start_date'] && (row['start_date']>start_date) && (row['start_date']<end_date)
           f.write "#{row['guid']},#{row['brand']},#{row['source']},#{row['product']},#{row['trace_id']},#{row['start_date']},#{row['end_date']}\n"
           nFound += 1
         end
