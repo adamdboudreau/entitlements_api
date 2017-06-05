@@ -580,19 +580,19 @@ task :backupDelta, [:table_name] do |task, args|
     result = nil
     if args[:table_name]=='tc'
       f.write ("guid,brand,tc_acceptance_date_timestamp,tc_version\n")
-      result = @connection.execute("SELECT guid,brand,toUnixTimestamp(tc_acceptance_date) AS tc_acceptance_date,tc_version FROM #{sTableName}", page_size: 1000)
+      result = @connection.execute("SELECT guid,brand,tc_acceptance_date,toUnixTimestamp(tc_acceptance_date) AS tc_acceptance_date_timestamp,tc_version FROM #{sTableName}", page_size: 1000)
     else
       f.write ("guid,brand,source,product,trace_id,start_date_timestamp,end_date\n")
-      result = @connection.execute("SELECT guid,brand,source,product,trace_id,toUnixTimestamp(start_date) AS start_date,end_date FROM #{sTableName}", page_size: 1000)
+      result = @connection.execute("SELECT guid,brand,source,product,trace_id,start_date,toUnixTimestamp(start_date) AS start_date_timestamp,end_date FROM #{sTableName}", page_size: 1000)
     end
 
     loop do
       result.each do |row|
         nTotal += 1
-        if (args[:table_name]=='tc') && (row['tc_acceptance_date']>start_date) && (row['tc_acceptance_date']<end_date)
+        if (args[:table_name]=='tc') && (row['tc_acceptance_date_timestamp']>start_date) && (row['tc_acceptance_date_timestamp']<end_date)
           f.write "#{row['guid']},#{row['brand']},#{row['tc_acceptance_date']},#{row['tc_version']}\n"
           nFound += 1
-        elsif row['start_date'] && (row['start_date']>start_date) && (row['start_date']<end_date)
+        elsif row['start_date'] && (row['start_date_timestamp']>start_date) && (row['start_date_timestamp']<end_date)
           f.write "#{row['guid']},#{row['brand']},#{row['source']},#{row['product']},#{row['trace_id']},#{row['start_date']},#{row['end_date']}\n"
           nFound += 1
         end
