@@ -166,6 +166,35 @@ end
 
 #######################################################################################
 
+desc 'Process csv file removing duplicates'
+task :remove_duplicates do
+  puts "remove duplicates rake task started"
+  csvFile = ENV['CSV']
+  abort "File not found: #{csvFile}" unless csvFile && File.file?(csvFile)
+  nCounter = 0
+  now = Time.now.to_i
+  # guid,brand,end_date,source,product,trace_id,start_date
+  sNewFileName = "#{csvFile}-unique.csv"
+  raCSV = Array.new
+
+  CSV.foreach(csvFile) do |row|
+    raCSV.push(row[0])
+    nCounter += 1
+    puts "Loaded #{nCounter} records to array"
+  end
+  puts "Finished loading records to array"
+  raCSV = raCSV.uniq
+  puts "Uniq applied, the array size=#{raCSV.length}, trying to save to #{sNewFileName}"
+  
+  CSV.open(sNewFileName, "wb") do |csv|
+    raCSV.each do |row|
+      csv << [row]
+    end
+  end
+end
+
+#######################################################################################
+
 desc 'Process csv file inserting hyphens'
 task :inject_hyphens do
   puts "inject_hyphens rake task started"
@@ -476,6 +505,37 @@ end
 
 #######################################################################################
 
+desc 'Find GUIDs difference between 2 CSV files'
+task :guid_diff do |task, args|
+  # format: rake guid_compare[4,4]
+  csvFile1 = ENV['CSV1']
+  csvFile2 = ENV['CSV2']
+  abort "File not found: #{csvFile1}" unless csvFile1 && File.file?(csvFile1)
+  abort "File not found: #{csvFile2}" unless csvFile2 && File.file?(csvFile2)
+  puts "guid_diff started"
+  raGuids1 = []
+  raGuids2 = []
+
+  CSV.foreach(csvFile1) do |row|
+    raGuids1 << row[0].strip.downcase
+  end
+  puts "raGuids1 initialized with #{raGuids1.length} records"
+
+  CSV.foreach(csvFile2) do |row|
+    raGuids2 << row[0].strip.downcase
+  end
+  puts "raGuids2 initialized with #{raGuids2.length} records"
+
+  ra1not2 = raGuids1 - raGuids2
+  ra2not1 = raGuids2 - raGuids1
+  raDiff = (raGuids1 - raGuids2) | (raGuids2 - raGuids1)
+  puts "guid_diff task finished ok, found #{ra1not2.length} records existing in file1 but missing at file2"
+  puts "guid_diff task finished ok, found #{ra2not1.length} records existing in file2 but missing at file1"
+  puts "guid_diff task finished ok, found #{raDiff.length} records different"
+end
+
+#######################################################################################
+
 desc 'Export'
 task :export, [:table_name, :condition] do |task, args|
   sTableName = Cfg.config['cassandraCluster']['keyspace'] + '.' + args[:table_name]
@@ -499,6 +559,51 @@ task :export, [:table_name, :condition] do |task, args|
     end
   end
   puts "#{nCounter} records backuped at #{sFileName}"
+end
+
+#######################################################################################
+
+desc 'Getting a list of guids'
+task :guids do
+  sTableName = Cfg.config['cassandraCluster']['keyspace'] + '.' + Cfg.config['tables']['entitlements']
+  sTableName2 = Cfg.config['cassandraCluster']['keyspace'] + '.' + Cfg.config['tables']['history_entitlements']
+  sFileName = Time.now.strftime(Cfg.config['s3']['backupFileFormat'].sub('%%table%%','GUIDS'))
+  sFileName = '2017-GUIDS-archive.csv'
+  @connection ||= Connection.instance.connection
+  nCounter = 0
+  nCounter2 = 0
+  puts "GUIDS rake task started with tableName=#{sTableName}"
+
+  File.open(sFileName, "w") do |f|
+#    result  = @connection.execute("SELECT guid FROM #{sTableName}", page_size: 1000)
+#    result  = @connection.execute("SELECT guid, start_date FROM #{sTableName} WHERE start_date>'2017-01-01 00:00:00' ALLOW FILTERING", page_size: 1000)
+#    loop do
+#      result.each do |row|
+#        f.write "#{row['guid']}\n"
+#        nCounter += 1
+#      end
+#      puts "Processed #{nCounter} records"
+
+#      break if result.last_page?
+#      result = result.next_page
+#    end
+#    puts "Processed #{nCounter} records, switching to #{sTableName2}"
+#    result  = @connection.execute("SELECT guid FROM #{sTableName2}", page_size: 1000)
+    result  = @connection.execute("SELECT guid, start_date FROM #{sTableName2} WHERE start_date>'2017-01-01 00:00:00' ALLOW FILTERING", page_size: 1000)
+    loop do
+      result.each do |row|
+        f.write "#{row['guid']}\n"
+        nCounter2 += 1
+      end
+      puts "Processed #{nCounter2} records for archive"
+
+      break if result.last_page?
+      result = result.next_page
+    end
+  end
+
+  puts "Finished processing #{nCounter} records for main table and #{nCounter2} records for archive"
+
 end
 
 #######################################################################################
@@ -565,47 +670,49 @@ end
 
 #######################################################################################
 
-desc 'Backup delta'  # makes backup for the changes since the last backup
+desc 'Backup delta'  # makes backup for the yesterday's records
 task :backupDelta, [:table_name] do |task, args|
   sTableName = args[:table_name] || Cfg.config['tables']['entitlements']
   sFileName = (Time.now-24.hours).strftime(Cfg.config['sftp']['backupFileFormat'].sub('%%table%%',sTableName))
   sZipFileName = "#{sFileName}.zip"
   sTableName = Cfg.config['cassandraCluster']['keyspace'] + '.' + sTableName
   @connection ||= Connection.instance.connection
-  nTotal = 0
   nFound = 0
-  start_date = (Time.now-24.hours).beginning_of_day.to_i*1000
-  end_date = (Time.now-24.hours).end_of_day.to_i*1000
+  start_date = (Time.now-24.hours).beginning_of_day.strftime("%F %T%z")
+  end_date = (Time.now-24.hours).end_of_day.strftime("%F %T%z")
   puts "BackupDelta rake task started with fileName=#{sFileName}, tableName=#{sTableName}, start_date=#{start_date}, end_date=#{end_date}"
 
   File.open(sFileName, "w") do |f|
-    result = nil
+    cql = "SELECT guid,brand,tc_acceptance_date,toUnixTimestamp(tc_acceptance_date) AS tc_acceptance_date_timestamp,tc_version FROM #{sTableName} WHERE tc_acceptance_date>='#{start_date}' AND tc_acceptance_date<='#{end_date}' ALLOW FILTERING"
     if args[:table_name]=='tc'
       f.write ("guid,brand,tc_acceptance_date,tc_version\n")
-      result = @connection.execute("SELECT guid,brand,tc_acceptance_date,toUnixTimestamp(tc_acceptance_date) AS tc_acceptance_date_timestamp,tc_version FROM #{sTableName}", page_size: 1000)
     else
       f.write ("guid,brand,source,product,trace_id,start_date,end_date\n")
-      result = @connection.execute("SELECT guid,brand,source,product,trace_id,start_date,toUnixTimestamp(start_date) AS start_date_timestamp,end_date FROM #{sTableName}", page_size: 1000)
+      cql = "SELECT guid,brand,source,product,trace_id,start_date,toUnixTimestamp(start_date) AS start_date_timestamp,end_date FROM #{sTableName} WHERE start_date>='#{start_date}' AND start_date<='#{end_date}' ALLOW FILTERING"
     end
+    puts "CQL: #{cql}"
+    result = @connection.execute(cql, page_size: 1000)
 
-    loop do
-      result.each do |row|
-        nTotal += 1
-        if (args[:table_name]=='tc') && (row['tc_acceptance_date_timestamp']>start_date) && (row['tc_acceptance_date_timestamp']<end_date)
-          f.write "#{row['guid']},#{row['brand']},#{row['tc_acceptance_date'].strftime("%F %T") },#{row['tc_version']}\n"
+    begin
+      loop do
+        result.each do |row|
           nFound += 1
-        elsif row['start_date'] && (row['start_date_timestamp']>start_date) && (row['start_date_timestamp']<end_date)
-          f.write "#{row['guid']},#{row['brand']},#{row['source']},#{row['product']},#{row['trace_id']},#{row['start_date'].strftime("%F %T")},#{row['end_date'].strftime("%F %T")}\n"
-          nFound += 1
+          if (args[:table_name]=='tc')
+            f.write "#{row['guid']},#{row['brand']},#{row['tc_acceptance_date'].strftime("%F %T") },#{row['tc_version']}\n"
+          else
+            f.write "#{row['guid']},#{row['brand']},#{row['source']},#{row['product']},#{row['trace_id']},#{row['start_date'].strftime("%F %T")},#{row['end_date'].strftime("%F %T")}\n"
+          end
         end
-      end
-      puts "Found #{nFound} of #{nTotal} processed records"
+        puts "Found #{nFound} records"
 
-      break if result.last_page?
-      result = result.next_page
+        break if result.last_page?
+        result = result.next_page
+      end
+    rescue Exception => e
+      puts "ERROR! deltaBackup EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
     end
   end
-  puts "#{nFound}/#{nTotal} records backuped at #{sFileName}, start zipping"
+  puts "#{nFound} records backuped at #{sFileName}, start zipping"
 
   Zip::File.open(sZipFileName, Zip::File::CREATE) do |zipfile|
     zipfile.add(sFileName, sFileName)
