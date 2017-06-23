@@ -845,7 +845,7 @@ task :cassandra_test do
   puts "cassandra_test :: Cassandra integrity test task started, CQL to test: #{cql}"
   begin
     @connection ||= Connection.instance.connection
-    result = @connection.execute(cql, consistency: :all, page_size: 1000)
+    result = @connection.execute(cql, consistency: :all, page_size: 1000, timeout: 30)
     loop do
       result.each do |row|
         nFound += 1
