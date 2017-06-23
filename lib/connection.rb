@@ -78,12 +78,12 @@ class Connection
 
 # comment out to disable SPDR checking
     # ping SPDR if no entitlements found, or if the only entitlement is addon (for example, gameplus)
-    if (check_spdr && Cfg.isBrandWithSPDR(params['brand']) && !Cfg.containsBaseEntitlement(result))
-      moveEntitlementsToArchive(result, "Deleted before SPDR check") if result.count>0
-      puts 'Connection.getEntitlements, checking entitlements at SPDR to insert them to Cassandra'
-      putEntitlement CAMP.new.getEntitlementParamsToInsert(params), false
-      return Connection.instance.getEntitlements(params, exclude_future_entitlements, false)
-    end
+#    if (check_spdr && Cfg.isBrandWithSPDR(params['brand']) && !Cfg.containsBaseEntitlement(result))
+#      moveEntitlementsToArchive(result, "Deleted before SPDR check") if result.count>0
+#      puts 'Connection.getEntitlements, checking entitlements at SPDR to insert them to Cassandra'
+#      putEntitlement CAMP.new.getEntitlementParamsToInsert(params), false
+#      return Connection.instance.getEntitlements(params, exclude_future_entitlements, false)
+#    end
 # end of commenting out to disable SPDR checking
 
     puts "Connection.getEntitlements, running CQL=#{cql} with args=#{args}, returning #{result.length} row(s)\n"
