@@ -840,21 +840,12 @@ desc 'cassandra_test'
 task :cassandra_test do
   start_date_min = (Time.now-24.hours).beginning_of_day.strftime("%F %T%z")
   start_date_max = (Time.now-24.hours).end_of_day.strftime("%F %T%z")
-  nFound = 0
-  cql = "SELECT * FROM #{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements']} WHERE start_date>='#{start_date_min}' AND start_date<='#{start_date_max}' ALLOW FILTERING"
+  cql = "SELECT COUNT(*) FROM #{Cfg.config['cassandraCluster']['keyspace']}.#{Cfg.config['tables']['entitlements']} WHERE start_date>='#{start_date_min}' AND start_date<='#{start_date_max}' ALLOW FILTERING"
   puts "cassandra_test :: Cassandra integrity test task started, CQL to test: #{cql}"
   begin
     @connection ||= Connection.instance.connection
-    result = @connection.execute(cql, consistency: :all, page_size: 1000, timeout: 30)
-    loop do
-      result.each do |row|
-        nFound += 1
-        puts "#{nFound} :: #{row}"
-      end
-      break if result.last_page?
-      result = result.next_page
-    end
-    puts "cassandra_test :: finished ok for #{nFound} records"
+    result = @connection.execute(cql, consistency: :all, page_size: nil, timeout: 30)
+    puts "cassandra_test :: finished ok for #{result.length} records"
   rescue Exception => e
     puts "cassandra_test :: ERROR! EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
   end
