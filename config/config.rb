@@ -12,8 +12,6 @@ require './lib/entitlements_service.rb'
 require './helpers/request.rb'
 require './helpers/camp.rb'
 
-Dir["./lib/tasks/*.*"].each {|file| require file }
-
 class Cfg
   include Singleton
 
