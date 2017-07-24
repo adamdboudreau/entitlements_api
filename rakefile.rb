@@ -687,24 +687,22 @@ task :backupDelta, [:table_name] do |task, args|
 
   File.open(sFileName, "w") do |f|
 #    cql = "SELECT guid,brand,tc_acceptance_date,toUnixTimestamp(tc_acceptance_date) AS tc_acceptance_date_timestamp,tc_version FROM #{sTableName} WHERE tc_acceptance_date>='#{start_date}' AND tc_acceptance_date<='#{end_date}' ALLOW FILTERING"
-#    cql = "SELECT guid,brand,tc_acceptance_date,toUnixTimestamp(tc_acceptance_date) AS start_date_timestamp,tc_version FROM #{sTableName} WHERE tc_acceptance_date>='#{start_date}' ALLOW FILTERING"
-    cql = "SELECT guid,brand,tc_acceptance_date,toUnixTimestamp(tc_acceptance_date) AS start_date_timestamp,tc_version FROM #{sTableName}"
+    cql = "SELECT guid,brand,tc_acceptance_date,toUnixTimestamp(tc_acceptance_date) AS start_date_timestamp,tc_version FROM #{sTableName} WHERE tc_acceptance_date>='#{start_date}' ALLOW FILTERING"
     if args[:table_name]=='tc'
       f.write ("guid,brand,tc_acceptance_date,tc_version\n")
     else
       f.write ("guid,brand,source,product,trace_id,start_date,end_date\n")
 #      cql = "SELECT guid,brand,source,product,trace_id,start_date,toUnixTimestamp(start_date) AS start_date_timestamp,end_date FROM #{sTableName} WHERE start_date>='#{start_date}' AND start_date<='#{end_date}' ALLOW FILTERING"
-#      cql = "SELECT guid,brand,source,product,trace_id,start_date,toUnixTimestamp(start_date) AS start_date_timestamp,end_date FROM #{sTableName} WHERE start_date>='#{start_date}' ALLOW FILTERING"
-      cql = "SELECT guid,brand,source,product,trace_id,start_date,toUnixTimestamp(start_date) AS start_date_timestamp,end_date FROM #{sTableName}"
+      cql = "SELECT guid,brand,source,product,trace_id,start_date,toUnixTimestamp(start_date) AS start_date_timestamp,end_date FROM #{sTableName} WHERE start_date>='#{start_date}' ALLOW FILTERING"
     end
     puts "BackupDelta CQL: #{cql}"
-    result = @connection.execute(cql, page_size: 1000, timeout: 60)
+    result = @connection.execute(cql, page_size: 100, timeout: 30, connect_timeout: 30)
 
     begin
       loop do
         result.each do |row|
           nProcessed += 1
-          if (row['start_date_timestamp'] > start_date_int) && (row['start_date_timestamp'] < end_date_int)
+          if row['start_date_timestamp'] < end_date_int
             nFound += 1
             if (args[:table_name]=='tc')
               f.write "#{row['guid']},#{row['brand']},#{row['tc_acceptance_date'].strftime("%F %T") },#{row['tc_version']}\n"
@@ -719,7 +717,7 @@ task :backupDelta, [:table_name] do |task, args|
         result = result.next_page
       end
     rescue Exception => e
-      puts "ERROR! deltaBackup EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
+      puts "ERROR! backupDelta EXCEPTION: #{e.message}\nBacktrace: #{e.backtrace.inspect}"
     end
   end
   puts "#{nFound} records backuped at #{sFileName}, start zipping"
