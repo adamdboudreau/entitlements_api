@@ -678,32 +678,42 @@ task :backupDelta, [:table_name] do |task, args|
   sTableName = Cfg.config['cassandraCluster']['keyspace'] + '.' + sTableName
   @connection ||= Connection.instance.connection
   nFound = 0
+  nProcessed = 0
   start_date = (Time.now-24.hours).beginning_of_day.strftime("%F %T%z")
+  start_date_int = (Time.now-24.hours).beginning_of_day.to_i * 1000
   end_date = (Time.now-24.hours).end_of_day.strftime("%F %T%z")
-  puts "BackupDelta rake task started with fileName=#{sFileName}, tableName=#{sTableName}, start_date=#{start_date}, end_date=#{end_date}"
+  end_date_int = (Time.now-24.hours).end_of_day.to_i * 1000
+  puts "BackupDelta rake task started with fileName=#{sFileName}, tableName=#{sTableName}, start_date=#{start_date}, end_date=#{end_date}, start_date_int=#{start_date_int}, end_date_int=#{end_date_int}"
 
   File.open(sFileName, "w") do |f|
-    cql = "SELECT guid,brand,tc_acceptance_date,toUnixTimestamp(tc_acceptance_date) AS tc_acceptance_date_timestamp,tc_version FROM #{sTableName} WHERE tc_acceptance_date>='#{start_date}' AND tc_acceptance_date<='#{end_date}' ALLOW FILTERING"
+#    cql = "SELECT guid,brand,tc_acceptance_date,toUnixTimestamp(tc_acceptance_date) AS tc_acceptance_date_timestamp,tc_version FROM #{sTableName} WHERE tc_acceptance_date>='#{start_date}' AND tc_acceptance_date<='#{end_date}' ALLOW FILTERING"
+#    cql = "SELECT guid,brand,tc_acceptance_date,toUnixTimestamp(tc_acceptance_date) AS start_date_timestamp,tc_version FROM #{sTableName} WHERE tc_acceptance_date>='#{start_date}' ALLOW FILTERING"
+    cql = "SELECT guid,brand,tc_acceptance_date,toUnixTimestamp(tc_acceptance_date) AS start_date_timestamp,tc_version FROM #{sTableName}"
     if args[:table_name]=='tc'
       f.write ("guid,brand,tc_acceptance_date,tc_version\n")
     else
       f.write ("guid,brand,source,product,trace_id,start_date,end_date\n")
-      cql = "SELECT guid,brand,source,product,trace_id,start_date,toUnixTimestamp(start_date) AS start_date_timestamp,end_date FROM #{sTableName} WHERE start_date>='#{start_date}' AND start_date<='#{end_date}' ALLOW FILTERING"
+#      cql = "SELECT guid,brand,source,product,trace_id,start_date,toUnixTimestamp(start_date) AS start_date_timestamp,end_date FROM #{sTableName} WHERE start_date>='#{start_date}' AND start_date<='#{end_date}' ALLOW FILTERING"
+#      cql = "SELECT guid,brand,source,product,trace_id,start_date,toUnixTimestamp(start_date) AS start_date_timestamp,end_date FROM #{sTableName} WHERE start_date>='#{start_date}' ALLOW FILTERING"
+      cql = "SELECT guid,brand,source,product,trace_id,start_date,toUnixTimestamp(start_date) AS start_date_timestamp,end_date FROM #{sTableName}"
     end
-    puts "CQL: #{cql}"
-    result = @connection.execute(cql, page_size: 1000)
+    puts "BackupDelta CQL: #{cql}"
+    result = @connection.execute(cql, page_size: 1000, timeout: 60)
 
     begin
       loop do
         result.each do |row|
-          nFound += 1
-          if (args[:table_name]=='tc')
-            f.write "#{row['guid']},#{row['brand']},#{row['tc_acceptance_date'].strftime("%F %T") },#{row['tc_version']}\n"
-          else
-            f.write "#{row['guid']},#{row['brand']},#{row['source']},#{row['product']},#{row['trace_id']},#{row['start_date'].strftime("%F %T")},#{row['end_date'].strftime("%F %T")}\n"
+          nProcessed += 1
+          if (row['start_date_timestamp'] > start_date_int) && (row['start_date_timestamp'] < end_date_int)
+            nFound += 1
+            if (args[:table_name]=='tc')
+              f.write "#{row['guid']},#{row['brand']},#{row['tc_acceptance_date'].strftime("%F %T") },#{row['tc_version']}\n"
+            else
+              f.write "#{row['guid']},#{row['brand']},#{row['source']},#{row['product']},#{row['trace_id']},#{row['start_date'].strftime("%F %T")},#{row['end_date'].strftime("%F %T")}\n"
+            end
           end
         end
-        puts "Found #{nFound} records"
+        puts "Found #{nFound} out of #{nProcessed} processed records"
 
         break if result.last_page?
         result = result.next_page
